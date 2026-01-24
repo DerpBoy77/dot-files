@@ -1,0 +1,51 @@
+/* 1. Import Pywal Colors */
+/* We use the waybar file because it is formatted correctly for GTK */
+@import url("/home/arnav/.cache/wal/colors-waybar.css");
+
+/* 2. Main Window Styling */
+window {
+    /* Use your Pywal background with 85% opacity */
+    /* alpha() is a GTK function that adds transparency to a hex color */
+    background-color: alpha(@background, 0.85);
+}
+
+/* 3. Grid/Flow Box (The area holding the images) */
+flowbox {
+    background-color: transparent;
+    border: none;
+}
+
+/* 4. Button Styling (The images themselves) */
+button {
+    background-color: transparent;
+    border-radius: 12px;
+    margin: 4px;
+    border: 2px solid transparent;
+    box-shadow: none;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background-image: none;
+    box-shadow: none;
+    /* Show a subtle border on hover */
+    border-color: alpha(@color4, 0.5);
+}
+
+/* 5. The "Selected" Image */
+/* Waypaper uses the .highlighted-button class for the active wallpaper */
+.highlighted-button {
+    background-image: none;
+    box-shadow: none;
+    /* High contrast selection: Accent border and slight dark tint */
+    background-color: alpha(@color0, 0.3);
+    border: 2px solid @color4;
+}
+
+/* Remove default GTK selection effects to keep it clean */
+button:hover>image,
+.highlighted-button>image, 
+.highlighted-button:hover>image {
+    -gtk-icon-effect: none;
+    -gtk-icon-shadow: none;
+}

@@ -1,0 +1,107 @@
+@import "../../.cache/wal/colors-waybar.css";
+
+* {
+  font-family:
+    "JetBrainsMono Nerd Font", "FantasqueSansMono Nerd Font", monospace;
+  font-size: 11px;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  font-weight: bold;
+}
+
+window#waybar {
+  background: transparent;
+  color: @foreground;
+}
+
+tooltip {
+  background: @background;
+  border: 2px solid @color4;
+  border-radius: 12px;
+}
+
+tooltip label {
+  color: @foreground;
+  padding: 4px;
+}
+
+#workspaces {
+  background: @background;
+
+  border-radius: 12px;
+  margin: 4px 0 4px 4px;
+  padding: 0 4px;
+}
+
+#workspaces button {
+  color: @foreground;
+  padding: 4px 12px;
+  margin: 4px 2px;
+  border-radius: 8px;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+#workspaces button.active {
+  background: @color4;
+  color: @background;
+}
+
+#workspaces button:hover {
+  background: @color2;
+  color: @background;
+}
+
+#clock {
+  background: @background;
+  color: @foreground;
+
+  border-radius: 12px;
+  padding: 4px 16px;
+  margin: 4px;
+}
+
+#tray,
+#network,
+#pulseaudio {
+  background: @background;
+  color: @foreground;
+
+  padding: 4px 12px;
+  margin: 4px 0 4px 0;
+}
+
+#tray {
+  border-radius: 12px 0 0 12px;
+  margin-left: 4px;
+  padding-left: 14px;
+  min-width: 30px;
+}
+
+#network {
+  color: @color4;
+  margin: 4px 0;
+}
+
+#network.disconnected {
+  background: @color1;
+  color: @foreground;
+}
+
+#pulseaudio {
+  color: @color4;
+  border-radius: 0 12px 12px 0;
+  margin-right: 4px;
+  padding-right: 14px;
+}
+
+#pulseaudio.muted {
+  background: @background;
+  color: @color8;
+}
+
+#custom-separator {
+  background: transparent;
+  color: transparent;
+}

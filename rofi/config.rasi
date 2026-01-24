@@ -1,0 +1,180 @@
+/* Catppuccin Mocha Theme for Rofi */
+
+configuration {
+    modi: "drun,run,window,filebrowser";
+    show-icons: true;
+    icon-theme: "Papirus-Dark";
+    display-drun: " Apps";
+    display-run: " Run";
+    display-window: " Windows";
+    display-filebrowser: " Files";
+    drun-display-format: "{name}";
+    window-format: "{w} · {c} · {t}";
+    font: "FantasqueSansMono Nerd Font 12";
+}
+
+/* Import Pywal colors */
+@import "~/.cache/wal/colors-rofi.rasi"
+
+* {
+    /* Global Defaults */
+    background-color: transparent;
+    text-color: @foreground;
+    
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+}
+
+window {
+    width: 600px;
+    /* Using Pywal background */
+    background-color: @background;
+    border: 2px solid;
+    /* Using Pywal accent color for border */
+    border-color: @color9;
+    border-radius: 16px;
+    padding: 20px;
+}
+
+mainbox {
+    background-color: transparent;
+    children: [inputbar, message, listview];
+}
+
+inputbar {
+    background-color: @color8;
+    text-color: @background; /* FIXED: Dark text */
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 0 0 16px 0;
+    children: [prompt, entry];
+}
+
+prompt {
+    background-color: transparent;
+    text-color: @background; /* FIXED: Dark text */
+    margin: 0 12px 0 0;
+}
+
+entry {
+    background-color: transparent;
+    text-color: @background; /* FIXED: Dark text */
+    placeholder: "Search...";
+    placeholder-color: @color0; /* FIXED: Darker placeholder */
+}
+
+message {
+    background-color: @color8;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 0 0 16px 0;
+}
+
+textbox {
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+listview {
+    background-color: transparent;
+    columns: 1;
+    lines: 8;
+    fixed-height: true;
+    spacing: 4px;
+    border: 0;
+}
+
+element {
+    background-color: transparent;
+    padding: 10px 14px;
+    border-radius: 10px;
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+element normal.urgent {
+    background-color: transparent;
+    text-color: @color1;
+}
+
+element normal.active {
+    background-color: transparent;
+    text-color: @color2;
+}
+
+/* Selected Items */
+element selected.normal {
+    background-color: @color4; /* FIXED: Use Accent Color */
+    text-color: @background;   /* FIXED: Dark Text */
+    border: 1px solid;
+    border-color: @color4;
+}
+
+element selected.urgent {
+    background-color: @color1;
+    text-color: @background;
+}
+
+element selected.active {
+    background-color: @color2;
+    text-color: @background;
+}
+
+element alternate.normal {
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+element alternate.urgent {
+    background-color: transparent;
+    text-color: @color1;
+}
+
+element alternate.active {
+    background-color: transparent;
+    text-color: @color2;
+}
+
+element-icon {
+    background-color: transparent;
+    size: 24px;
+    margin: 0 12px 0 0;
+    text-color: inherit; /* FIXED: Inherit the dark color when selected */
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+    vertical-align: 0.5;
+}
+
+scrollbar {
+    handle-width: 4px;
+    handle-color: @color1;
+    background-color: @background;
+    border-radius: 4px;
+    margin: 0 0 0 8px;
+}
+
+/* Mode switcher (tabs) */
+mode-switcher {
+    background-color: transparent;
+    spacing: 8px;
+    margin: 0 0 16px 0;
+}
+
+button {
+    background-color: @color8;
+    text-color: @color7;
+    padding: 8px 16px;
+    border-radius: 10px;
+}
+
+button selected {
+    background-color: @color9;
+    text-color: @background;
+}
