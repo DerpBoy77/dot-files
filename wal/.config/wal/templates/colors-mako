@@ -1,0 +1,17 @@
+# Pywal color template for Mako
+# Generated automatically by pywal
+
+background-color={background}E6
+text-color={foreground}
+border-color={color4}
+progress-color=over {color2}
+
+[urgency=low]
+border-color={color2}
+
+[urgency=normal]
+border-color={color4}
+
+[urgency=high]
+border-color={color1}
+text-color={color1}

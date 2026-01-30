@@ -1,0 +1,338 @@
+/* 1. Import the Pywal colors */
+@import url("../../.cache/wal/colors-waybar.css");
+
+/* 2. Global Variable Definitions */
+@define-color theme_bg_color @background;
+@define-color theme_fg_color @foreground;
+@define-color theme_selected_bg_color @color4;
+@define-color theme_selected_fg_color @background;
+@define-color theme_text_color @foreground;
+@define-color theme_base_color @background;
+@define-color theme_view_active_bg_color @color4;
+@define-color theme_view_active_fg_color @background;
+
+/* ---------------------------------------------------------
+   CORE WINDOW & LAYOUT
+   --------------------------------------------------------- */
+/* Apply transparency and base colors to all main windows */
+window,
+window.background {
+    background-color: alpha(@theme_bg_color, 0.85);
+    color: @theme_fg_color;
+}
+
+/* Decoration (CSD) and Main Views */
+decoration {
+    box-shadow: none;
+    background: transparent;
+}
+
+/* The central content area of most apps (Text editors, File managers) */
+.view,
+.standard-view,
+iconview,
+treeview,
+textview {
+    background-color: transparent; /* Allows window transparency to show through */
+    color: @theme_fg_color;
+}
+
+.view:selected, 
+iconview:selected, 
+row:selected,
+treeview:selected {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+/* ---------------------------------------------------------
+   HEADERBARS, TOOLBARS & TITLEBARS
+   --------------------------------------------------------- */
+headerbar,
+.titlebar,
+toolbar {
+    background-color: alpha(@theme_bg_color, 0.85);
+    background-image: none;
+    color: @theme_fg_color;
+    border-bottom: 1px solid @color4;
+    box-shadow: none;
+    min-height: 0;
+}
+
+/* Remove gradients/borders from backdrop (inactive) windows */
+headerbar:backdrop,
+.titlebar:backdrop {
+    background-color: alpha(@theme_bg_color, 0.85);
+    background-image: none;
+    box-shadow: none;
+}
+
+/* Buttons inside Headerbars/Toolbars */
+headerbar button,
+toolbar button {
+    background-color: transparent;
+    color: @theme_fg_color;
+    border: none;
+    box-shadow: none;
+    margin: 2px;
+}
+
+headerbar button:hover,
+toolbar button:hover {
+    background-color: @color4;
+    color: @background;
+}
+
+/* ---------------------------------------------------------
+   SIDEBARS (Generic, not just Thunar)
+   --------------------------------------------------------- */
+/* standard GTK sidebar names: placessidebar, stacksidebar */
+.sidebar,
+stacksidebar,
+placessidebar,
+placessidebar list {
+    background-color: alpha(@color0, 0.5); /* Darker, semi-transparent */
+    color: @foreground;
+    border-right: 1px solid @color4;
+}
+
+.sidebar row:selected,
+stacksidebar row:selected,
+placessidebar row:selected {
+    background-color: @color4;
+    color: @background;
+}
+
+.sidebar row:hover,
+stacksidebar row:hover,
+placessidebar row:hover {
+    background-color: alpha(@color4, 0.3);
+    color: @foreground;
+}
+
+/* ---------------------------------------------------------
+   INPUTS & ENTRIES
+   --------------------------------------------------------- */
+entry {
+    background-color: alpha(@color0, 0.5);
+    color: @foreground;
+    border: 1px solid @color4;
+    caret-color: @foreground;
+    padding: 4px;
+}
+
+entry:focus {
+    background-color: alpha(@color0, 0.85);
+    box-shadow: inset 0 0 0 1px @color4;
+    border-color: @color4;
+}
+
+entry:disabled {
+    background-color: alpha(@color0, 0.3);
+    color: alpha(@foreground, 0.5);
+}
+
+/* ---------------------------------------------------------
+   BUTTONS (Standard)
+   --------------------------------------------------------- */
+button {
+    background-color: alpha(@color0, 0.2);
+    background-image: none;
+    color: @foreground;
+    border: 1px solid @color4;
+    box-shadow: none;
+    text-shadow: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+button:hover {
+    background-color: @color4;
+    background-image: none;
+    color: @background;
+}
+
+button:active,
+button:checked {
+    background-color: @color4;
+    color: @background;
+}
+
+button:disabled {
+    background-color: transparent;
+    color: alpha(@foreground, 0.5);
+    border-color: alpha(@color4, 0.5);
+}
+
+/* Suggested Action (Primary Buttons) */
+button.suggested-action {
+    background-color: @color4;
+    color: @background;
+}
+
+button.suggested-action:hover {
+    background-color: alpha(@color4, 0.8);
+}
+
+/* ---------------------------------------------------------
+   TABS (Notebooks)
+   --------------------------------------------------------- */
+/* Crucial for Terminal, Geany, Text Editors */
+notebook header {
+    background-color: alpha(@color0, 0.5);
+    border: none;
+}
+
+notebook header tab {
+    background-color: transparent;
+    color: @foreground;
+    border: none;
+    padding: 4px 8px;
+}
+
+notebook header tab:checked {
+    background-color: @color4;
+    color: @background;
+    box-shadow: none;
+}
+
+notebook header tab:hover:not(:checked) {
+    background-color: alpha(@color4, 0.3);
+}
+
+/* The content area inside the tab */
+notebook stack {
+    background-color: transparent;
+}
+
+/* ---------------------------------------------------------
+   MENUS & POPOVERS
+   --------------------------------------------------------- */
+menu,
+.menu,
+popover {
+    background-color: alpha(@color0, 0.85);
+    color: @foreground;
+    border: 1px solid @color4;
+}
+
+menu item,
+.menu item,
+popover modelbutton {
+    background-color: transparent;
+    color: @foreground;
+    padding: 4px 8px;
+}
+
+menu item:hover,
+.menu item:hover,
+popover modelbutton:hover {
+    background-color: @color4;
+    color: @background;
+}
+
+menu separator,
+popover separator {
+    color: @color4;
+}
+
+/* ---------------------------------------------------------
+   SCROLLBARS
+   --------------------------------------------------------- */
+scrollbar {
+    background-color: transparent;
+}
+
+scrollbar trough {
+    background-color: transparent;
+}
+
+scrollbar slider {
+    background-color: alpha(@color8, 0.5);
+    min-width: 6px;
+    min-height: 6px;
+    border-radius: 10px;
+}
+
+scrollbar slider:hover {
+    background-color: @color4;
+}
+
+/* ---------------------------------------------------------
+   DIALOGS
+   --------------------------------------------------------- */
+dialog,
+messagedialog,
+filechooser {
+    background-color: alpha(@color0, 0.95);
+    color: @foreground;
+}
+
+dialog headerbar,
+messagedialog headerbar {
+    background-color: transparent;
+    border-bottom: 1px solid @color4;
+}
+
+/* ---------------------------------------------------------
+   MISC WIDGETS
+   --------------------------------------------------------- */
+/* Switch (Toggle buttons) */
+switch {
+    background-color: @color0;
+    border: 1px solid @color4;
+}
+
+switch:checked {
+    background-color: @color4;
+    color: @background;
+}
+
+switch slider {
+    background-color: @foreground;
+}
+
+/* Progress Bars */
+progressbar trough {
+    background-color: @color0;
+    border: none;
+}
+
+progressbar progress {
+    background-color: @color4;
+    border-radius: 3px;
+}
+
+/* Tooltips */
+tooltip {
+    background-color: alpha(@color0, 0.95);
+    color: @foreground;
+    border: 1px solid @color4;
+}
+
+/* --- FIX: Prevent White Flash on Unfocused Windows (Backdrop) --- */
+
+/* 1. Fix the Main Window Background */
+window:backdrop,
+.thunar:backdrop {
+    background-color: alpha(@theme_bg_color, 0.85);
+    color: @theme_fg_color;
+}
+
+/* 2. Fix the Top Bars (Menu, Toolbar, Header) */
+headerbar:backdrop,
+menubar:backdrop,
+toolbar:backdrop,
+.titlebar:backdrop {
+    background-color: alpha(@theme_bg_color, 1.0);
+    background-image: none; /* Removes default gradients */
+    color: @theme_fg_color;
+    box-shadow: none;       /* Removes the white outline */
+}
+
+/* 3. Fix the Bottom Status Bar */
+statusbar:backdrop,
+.statusbar:backdrop {
+    background-color: transparent;
+    color: @theme_fg_color;
+}

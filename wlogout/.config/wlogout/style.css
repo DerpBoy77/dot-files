@@ -1,0 +1,53 @@
+@import "../../.cache/wal/colors-wlogout.css";
+
+* {
+  background-image: none;
+  box-shadow: none;
+}
+
+window {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+button {
+  color: @foreground;
+  background-color: alpha(@background, 0.7);
+  border: 2px solid alpha(@color4, 0.8);
+  border-radius: 12px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 25%;
+  margin: 12px;
+  transition: all 0.3s ease;
+  outline-style: none;
+}
+
+button:hover {
+  background-color: alpha(@color4, 0.9);
+  color: @background;
+  border-color: @color4;
+}
+
+#lock {
+  background-image: image(url("/usr/share/wlogout/icons/lock.png"));
+}
+
+#logout {
+  background-image: image(url("/usr/share/wlogout/icons/logout.png"));
+}
+
+#suspend {
+  background-image: image(url("/usr/share/wlogout/icons/suspend.png"));
+}
+
+#hibernate {
+  background-image: image(url("/usr/share/wlogout/icons/hibernate.png"));
+}
+
+#shutdown {
+  background-image: image(url("/usr/share/wlogout/icons/shutdown.png"));
+}
+
+#reboot {
+  background-image: image(url("/usr/share/wlogout/icons/reboot.png"));
+}
