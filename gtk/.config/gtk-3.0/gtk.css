@@ -1,5 +1,5 @@
-/* 1. Import the Pywal colors */
-@import url("../../.cache/wal/colors-waybar.css");
+/* 1. Import the Wallust colors */
+@import url("../../.cache/wallust/colors-waybar.css");
 
 /* 2. Global Variable Definitions */
 @define-color theme_bg_color @background;

@@ -1,0 +1,19 @@
+# Wallust Configuration File v3
+# https://github.com/Beastwick18/wallust
+
+# Color palette engine
+backend = "kmeans"
+color_space = "lab"
+threshold = 5
+
+# Templates configuration
+[templates]
+colors-mako = { template = "colors-mako", target = "~/.cache/wallust/colors-mako" }
+colors-waybar = { template = "colors-waybar.css", target = "~/.cache/wallust/colors-waybar.css" }
+colors-wlogout = { template = "colors-wlogout.css", target = "~/.cache/wallust/colors-wlogout.css" }
+colors-rofi = { template = "colors-rofi.rasi", target = "~/.cache/wallust/colors-rofi.rasi" }
+colors-kitty = { template = "colors-kitty.conf", target = "~/.cache/wallust/colors-kitty.conf" }
+hyprland = { template = "hyprland.conf", target = "~/.cache/wallust/hyprland.conf" }
+colors-hyprlock = { template = "colors-hyprlock.conf", target = "~/.cache/wallust/colors-hyprlock.conf" }
+vscode = { src = 'vscode.json', dst = '~/.cache/wallust/colors.json' }
+vscode2 = { src = 'vscode', dst = '~/.cache/wallust/colors' }

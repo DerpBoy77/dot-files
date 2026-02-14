@@ -1,8 +1,8 @@
 # Mako notification daemon configuration
-# Integrates with Pywal for theming
+# Integrates with Wallust for theming
 
-# Include pywal colors
-include=~/.cache/wal/colors-mako
+# Include wallust colors
+include=~/.cache/wallust/colors-mako
 
 # Appearance
 font=sans-serif 11

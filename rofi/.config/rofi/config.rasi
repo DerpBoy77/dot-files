@@ -14,7 +14,7 @@ configuration {
 }
 
 /* Import Pywal colors */
-@import "~/.cache/wal/colors-rofi.rasi"
+@import "~/.cache/wallust/colors-rofi.rasi"
 
 * {
     /* Global Defaults */
