@@ -4,7 +4,7 @@
 # Color palette engine
 backend = "kmeans"
 color_space = "lab"
-threshold = 5
+palette = "dark"
 
 # Templates configuration
 [templates]
@@ -17,3 +17,4 @@ hyprland = { template = "hyprland.conf", target = "~/.cache/wallust/hyprland.con
 colors-hyprlock = { template = "colors-hyprlock.conf", target = "~/.cache/wallust/colors-hyprlock.conf" }
 vscode = { src = 'vscode.json', dst = '~/.cache/wallust/colors.json' }
 vscode2 = { src = 'vscode', dst = '~/.cache/wallust/colors' }
+qt6ct = { template = 'qtct-colors.conf', target = '~/.config/qt6ct/colors/qt6ct-colors.conf' }
