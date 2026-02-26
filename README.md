@@ -36,7 +36,7 @@ The dotfiles are managed with [GNU Stow](https://www.gnu.org/software/stow/), wh
 
 ```bash
 # Clone the repo
-git clone https://github.com/<your-username>/dot-files.git ~/dot-files
+git clone https://github.com/DerpBoy77/dot-files.git ~/dot-files
 cd ~/dot-files
 
 # Install all packages at once
