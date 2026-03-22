@@ -1,6 +1,6 @@
 /* 1. Import Wallust Colors */
 /* We use the waybar file because it is formatted correctly for GTK */
-@import url("/home/arnav/.cache/wallust/colors-waybar.css");
+@import url("~/.cache/wallust/colors-waybar.css");
 
 /* 2. Main Window Styling */
 window {

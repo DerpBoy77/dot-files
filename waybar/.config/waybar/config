@@ -30,7 +30,8 @@
   },
 
   "clock": {
-    "format": "{:%H:%M}",
+    "format": "{:%H:%M:%S}",
+    "interval": 1,
     "format-alt": "{:%A, %d %B %Y}",
     "tooltip-format": "<tt>{calendar}</tt>",
     "calendar": {
@@ -63,6 +64,7 @@
   "tray": {
     "icon-size": 16,
     "spacing": 8,
+    "icon-theme": "Papirus-Dark",
     "show-passive-items": true,
     "reverse-direction": false
   },
