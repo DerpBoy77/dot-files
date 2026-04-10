@@ -4,7 +4,7 @@
 img="$1"
 
 # 2. Set the wallpaper using swww
-swww img "$img" --transition-type grow --transition-pos 0.854,0.977 --transition-step 90
+awww img "$img" --transition-type grow --transition-pos 0.854,0.977 --transition-step 90
 
 # 3. Generate Colors using Wallust
 wallust run "$img"
