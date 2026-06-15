@@ -13,6 +13,7 @@ colors-waybar = { template = "colors-waybar.css", target = "~/.cache/wallust/col
 colors-wlogout = { template = "colors-wlogout.css", target = "~/.cache/wallust/colors-wlogout.css" }
 colors-rofi = { template = "colors-rofi.rasi", target = "~/.cache/wallust/colors-rofi.rasi" }
 colors-kitty = { template = "colors-kitty.conf", target = "~/.cache/wallust/colors-kitty.conf" }
+hyprland-lua = { template = "colors.lua", target = "~/.cache/wallust/colors.lua" }
 hyprland = { template = "hyprland.conf", target = "~/.cache/wallust/hyprland.conf" }
 colors-hyprlock = { template = "colors-hyprlock.conf", target = "~/.cache/wallust/colors-hyprlock.conf" }
 vscode = { src = 'vscode.json', dst = '~/.cache/wallust/colors.json' }

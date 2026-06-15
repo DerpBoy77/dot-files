@@ -1,4 +1,3 @@
-/* Catppuccin Mocha Theme for Rofi */
 
 configuration {
     modi: "drun,run,window,filebrowser";
@@ -10,7 +9,7 @@ configuration {
     display-filebrowser: " Files";
     drun-display-format: "{name}";
     window-format: "{w} · {c} · {t}";
-    font: "FantasqueSansMono Nerd Font 12";
+    font: "JetBrainsMono Nerd Font 12";
 }
 
 /* Import Pywal colors */
