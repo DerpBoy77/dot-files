@@ -5,6 +5,7 @@
 backend = "kmeans"
 color_space = "lab"
 palette = "dark"
+check_contrast = true
 
 # Templates configuration
 [templates]

@@ -16,6 +16,7 @@ hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(calculator))
 hl.bind(mainMod .. " + Q", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + space", hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("killall -SIGUSR2 waybar"))
 
 -- Clipboard history
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("~/.config/scripts/clip.sh"))

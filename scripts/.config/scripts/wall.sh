@@ -13,5 +13,5 @@ wallust run "$img"
 cp "$img" ~/.cache/current_wallpaper.png
 
 # 5. Reload Waybar to apply colors
-pkill waybar && hyprctl dispatch exec waybar
-
+killall -SIGUSR2 waybar
+killall thunar && sleep 0.2 &&  hyprctl dispatch 'hl.dsp.exec_cmd("[workspace special:magic silent] thunar")'  

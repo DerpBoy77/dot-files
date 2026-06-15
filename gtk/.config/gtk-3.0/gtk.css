@@ -12,37 +12,57 @@
 @define-color theme_view_active_fg_color @background;
 
 /* ---------------------------------------------------------
+   GLOBAL & ACCESSIBILITY FIXES
+   --------------------------------------------------------- */
+/* Add global transitions for a smoother UI feel */
+button,
+entry,
+row,
+tab,
+menu item,
+switch slider {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Clearer focus rings for keyboard navigation */
+*:focus-visible {
+    outline: 2px solid alpha(@color4, 0.8);
+    outline-offset: -2px;
+}
+
+/* ---------------------------------------------------------
    CORE WINDOW & LAYOUT
    --------------------------------------------------------- */
-/* Apply transparency and base colors to all main windows */
 window,
 window.background {
     background-color: alpha(@theme_bg_color, 0.85);
     color: @theme_fg_color;
+    border-radius: 8px;
+    /* Slightly rounded window corners */
 }
 
-/* Decoration (CSD) and Main Views */
 decoration {
     box-shadow: none;
     background: transparent;
 }
 
-/* The central content area of most apps (Text editors, File managers) */
 .view,
 .standard-view,
 iconview,
 treeview,
 textview {
-    background-color: transparent; /* Allows window transparency to show through */
+    background-color: transparent;
     color: @theme_fg_color;
 }
 
-.view:selected, 
-iconview:selected, 
+.view:selected,
+iconview:selected,
 row:selected,
 treeview:selected {
     background-color: @theme_selected_bg_color;
     color: @theme_selected_fg_color;
+    border-radius: 4px;
+    /* Soften selected items */
 }
 
 /* ---------------------------------------------------------
@@ -54,12 +74,12 @@ toolbar {
     background-color: alpha(@theme_bg_color, 0.85);
     background-image: none;
     color: @theme_fg_color;
-    border-bottom: 1px solid @color4;
+    border-bottom: 1px solid alpha(@color4, 0.5);
+    /* Softened border */
     box-shadow: none;
     min-height: 0;
 }
 
-/* Remove gradients/borders from backdrop (inactive) windows */
 headerbar:backdrop,
 .titlebar:backdrop {
     background-color: alpha(@theme_bg_color, 0.85);
@@ -67,7 +87,6 @@ headerbar:backdrop,
     box-shadow: none;
 }
 
-/* Buttons inside Headerbars/Toolbars */
 headerbar button,
 toolbar button {
     background-color: transparent;
@@ -75,6 +94,7 @@ toolbar button {
     border: none;
     box-shadow: none;
     margin: 2px;
+    border-radius: 4px;
 }
 
 headerbar button:hover,
@@ -84,16 +104,24 @@ toolbar button:hover {
 }
 
 /* ---------------------------------------------------------
-   SIDEBARS (Generic, not just Thunar)
+   SIDEBARS
    --------------------------------------------------------- */
-/* standard GTK sidebar names: placessidebar, stacksidebar */
 .sidebar,
 stacksidebar,
 placessidebar,
 placessidebar list {
-    background-color: alpha(@color0, 0.5); /* Darker, semi-transparent */
+    background-color: alpha(@color0, 0.5);
     color: @foreground;
-    border-right: 1px solid @color4;
+    border-right: 1px solid alpha(@color4, 0.3);
+    /* Softened border */
+}
+
+.sidebar row,
+stacksidebar row,
+placessidebar row {
+    border-radius: 4px;
+    margin: 0 4px;
+    /* Prevents selected rows from touching the absolute edge */
 }
 
 .sidebar row:selected,
@@ -116,9 +144,11 @@ placessidebar row:hover {
 entry {
     background-color: alpha(@color0, 0.5);
     color: @foreground;
-    border: 1px solid @color4;
+    border: 1px solid alpha(@color4, 0.5);
     caret-color: @foreground;
-    padding: 4px;
+    padding: 6px;
+    /* Slightly larger hit area */
+    border-radius: 6px;
 }
 
 entry:focus {
@@ -136,48 +166,81 @@ entry:disabled {
    BUTTONS (Standard)
    --------------------------------------------------------- */
 button {
-    background-color: alpha(@color0, 0.2);
+    background-color: alpha(@color0, 0.4);
     background-image: none;
     color: @foreground;
-    border: 1px solid @color4;
+    border: 1px solid alpha(@color4, 0.5);
     box-shadow: none;
     text-shadow: none;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 4px 12px;
+    /* Better proportions */
+    border-radius: 6px;
 }
 
 button:hover {
     background-color: @color4;
-    background-image: none;
     color: @background;
+    border-color: @color4;
 }
 
 button:active,
 button:checked {
-    background-color: @color4;
+    background-color: alpha(@color4, 0.8);
     color: @background;
 }
 
 button:disabled {
     background-color: transparent;
     color: alpha(@foreground, 0.5);
-    border-color: alpha(@color4, 0.5);
+    border-color: alpha(@color4, 0.3);
 }
 
-/* Suggested Action (Primary Buttons) */
 button.suggested-action {
     background-color: @color4;
     color: @background;
+    border-color: @color4;
 }
 
 button.suggested-action:hover {
     background-color: alpha(@color4, 0.8);
 }
 
+/* Fix for File Manager Columns (TreeView Headers) */
+treeview button.header {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid alpha(@color4, 0.3);
+    border-radius: 0;
+    padding: 2px 6px;
+}
+
+treeview button.header:hover {
+    background-color: alpha(@color4, 0.1);
+    color: @foreground;
+}
+
+/* ---------------------------------------------------------
+   CHECKBOXES & RADIO BUTTONS
+   --------------------------------------------------------- */
+checkbutton check,
+radiobutton radio {
+    background-color: alpha(@color0, 0.5);
+    border: 1px solid alpha(@color4, 0.6);
+    min-height: 14px;
+    min-width: 14px;
+}
+
+checkbutton check:checked,
+radiobutton radio:checked {
+    background-color: @color4;
+    color: @background;
+    /* Checkmark/Dot color */
+    border-color: @color4;
+}
+
 /* ---------------------------------------------------------
    TABS (Notebooks)
    --------------------------------------------------------- */
-/* Crucial for Terminal, Geany, Text Editors */
 notebook header {
     background-color: alpha(@color0, 0.5);
     border: none;
@@ -187,20 +250,24 @@ notebook header tab {
     background-color: transparent;
     color: @foreground;
     border: none;
-    padding: 4px 8px;
+    padding: 6px 10px;
+    border-radius: 6px 6px 0 0;
+    /* Rounded top corners only */
 }
 
 notebook header tab:checked {
-    background-color: @color4;
-    color: @background;
+    background-color: alpha(@color4, 0.2);
+    color: @foreground;
+    /* Kept foreground so text isn't washed out if tab background is light */
+    border-bottom: 2px solid @color4;
+    /* Underline indicator for active tab */
     box-shadow: none;
 }
 
 notebook header tab:hover:not(:checked) {
-    background-color: alpha(@color4, 0.3);
+    background-color: alpha(@color4, 0.1);
 }
 
-/* The content area inside the tab */
 notebook stack {
     background-color: transparent;
 }
@@ -211,9 +278,14 @@ notebook stack {
 menu,
 .menu,
 popover {
-    background-color: alpha(@color0, 0.85);
+    background-color: alpha(@color0, 0.95);
+    /* Slightly darker for contrast */
     color: @foreground;
-    border: 1px solid @color4;
+    border: 1px solid alpha(@color4, 0.5);
+    border-radius: 8px;
+    /* Modern floating feel */
+    box-shadow: 0px 4px 12px alpha(#000000, 0.3);
+    /* Subtle drop shadow */
 }
 
 menu item,
@@ -221,7 +293,9 @@ menu item,
 popover modelbutton {
     background-color: transparent;
     color: @foreground;
-    padding: 4px 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin: 2px 4px;
 }
 
 menu item:hover,
@@ -233,25 +307,26 @@ popover modelbutton:hover {
 
 menu separator,
 popover separator {
-    color: @color4;
+    background-color: alpha(@color4, 0.2);
+    /* Replaced 'color' with 'background-color' for line rendering */
+    margin: 4px 0;
 }
 
 /* ---------------------------------------------------------
    SCROLLBARS
    --------------------------------------------------------- */
-scrollbar {
-    background-color: transparent;
-}
-
+scrollbar,
 scrollbar trough {
     background-color: transparent;
 }
 
 scrollbar slider {
-    background-color: alpha(@color8, 0.5);
+    background-color: alpha(@color8, 0.4);
     min-width: 6px;
     min-height: 6px;
     border-radius: 10px;
+    margin: 2px;
+    /* Prevent slider from touching extreme edge */
 }
 
 scrollbar slider:hover {
@@ -266,21 +341,22 @@ messagedialog,
 filechooser {
     background-color: alpha(@color0, 0.95);
     color: @foreground;
+    border-radius: 8px;
 }
 
 dialog headerbar,
 messagedialog headerbar {
     background-color: transparent;
-    border-bottom: 1px solid @color4;
+    border-bottom: 1px solid alpha(@color4, 0.3);
 }
 
 /* ---------------------------------------------------------
    MISC WIDGETS
    --------------------------------------------------------- */
-/* Switch (Toggle buttons) */
 switch {
-    background-color: @color0;
-    border: 1px solid @color4;
+    background-color: alpha(@color0, 0.6);
+    border: 1px solid alpha(@color4, 0.5);
+    border-radius: 14px;
 }
 
 switch:checked {
@@ -290,49 +366,76 @@ switch:checked {
 
 switch slider {
     background-color: @foreground;
+    border-radius: 50%;
 }
 
-/* Progress Bars */
 progressbar trough {
-    background-color: @color0;
+    background-color: alpha(@color0, 0.6);
     border: none;
+    border-radius: 4px;
 }
 
 progressbar progress {
     background-color: @color4;
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
-/* Tooltips */
 tooltip {
     background-color: alpha(@color0, 0.95);
     color: @foreground;
-    border: 1px solid @color4;
+    border: 1px solid alpha(@color4, 0.5);
+    border-radius: 6px;
+    padding: 4px 8px;
 }
 
-/* --- FIX: Prevent White Flash on Unfocused Windows (Backdrop) --- */
-
-/* 1. Fix the Main Window Background */
+/* ---------------------------------------------------------
+   BACKDROP FIXES (Unfocused Windows)
+   --------------------------------------------------------- */
+/* Keep background and text color identical to active window */
 window:backdrop,
 .thunar:backdrop {
     background-color: alpha(@theme_bg_color, 0.85);
     color: @theme_fg_color;
 }
 
-/* 2. Fix the Top Bars (Menu, Toolbar, Header) */
+/* Keep headerbars, toolbars, and titlebars identical to active state */
 headerbar:backdrop,
-menubar:backdrop,
 toolbar:backdrop,
 .titlebar:backdrop {
-    background-color: alpha(@theme_bg_color, 1.0);
-    background-image: none; /* Removes default gradients */
+    background-color: alpha(@theme_bg_color, 0.85);
+    background-image: none;
     color: @theme_fg_color;
-    box-shadow: none;       /* Removes the white outline */
+    box-shadow: none;
+    border-bottom: 1px solid alpha(@color4, 0.5);
+    /* Matches your active state */
 }
 
-/* 3. Fix the Bottom Status Bar */
+/* FIX: Prevent the green line from appearing under menus/tabs when unfocused */
+menubar:backdrop,
+notebook header:backdrop {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    box-shadow: none;
+}
+
+/* Keep status bar identical */
 statusbar:backdrop,
 .statusbar:backdrop {
     background-color: transparent;
     color: @theme_fg_color;
+}
+
+/* Ensure inactive inputs/buttons don't aggressively wash out */
+entry:backdrop,
+button:backdrop {
+    color: @foreground;
+    border-color: alpha(@color4, 0.5);
+}
+
+/* Click-and-drag selection box */
+rubberband,
+.content-view rubberband {
+    background-color: alpha(@color4, 0.2);
+    border: 1px solid @color4;
 }

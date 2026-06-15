@@ -105,3 +105,14 @@ tooltip label {
   background: transparent;
   color: transparent;
 }
+
+/* Dim empty workspaces */
+#workspaces button.empty {
+  color: alpha(@foreground, 0.4);
+}
+
+/* Keep occupied (but not active) workspaces bright */
+#workspaces button:not(.empty):not(.active) {
+  color: @foreground;
+  font-weight: bold;
+}
