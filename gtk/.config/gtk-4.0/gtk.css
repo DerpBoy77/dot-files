@@ -1,0 +1,302 @@
+/* 1. Import your Wallust colors */
+@import url("../../.cache/wallust/colors-waybar.css");
+
+/* 2. Map Core Variables and MATCH KITTY'S TRANSPARENCY */
+@define-color accent_color @color4;
+@define-color accent_bg_color @color4;
+
+/* Matched exactly to Kitty's background_opacity 0.8 */
+@define-color window_bg_color alpha(@background, 0.8);
+
+/* 3. MAIN WINDOW (Matches Kitty Font and Background) */
+window {
+    background-color: @window_bg_color;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 11pt;
+}
+
+/* 4. STRIP ALL WHITE BOXES */
+headerbar,
+.titlebar,
+notebook header,
+notebook>header,
+tabbar,
+searchbar,
+toolbar,
+viewport,
+scrolledwindow,
+stack,
+paned,
+.view,
+view,
+treeview,
+listview,
+box,
+grid,
+frame,
+revealer,
+overlay,
+flowbox,
+flowboxchild,
+.expander-widget {
+    background-color: transparent;
+    background: transparent;
+    background-image: none;
+    color: @foreground;
+}
+
+/* 4.5. FIX THE GREY COLUMN HEADERS */
+columnview>listview>button,
+columnview button {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-bottom: 1px solid alpha(@foreground, 0.2);
+    border-radius: 0;
+}
+
+/* 5. MATCH TERMINAL UI (Fixed White Buttons & Dropdowns) */
+button,
+menubutton,
+dropdown {
+    background-color: alpha(@foreground, 0.1);
+    background-image: none;
+    /* This is what finally kills the white Adwaita boxes! */
+    color: @foreground;
+    border: 1px solid alpha(@foreground, 0.2);
+    border-radius: 6px;
+    font-family: inherit;
+    box-shadow: none;
+}
+
+button:hover,
+menubutton:hover,
+dropdown:hover {
+    background-color: alpha(@foreground, 0.2);
+}
+
+button.suggested-action {
+    background-color: @accent_bg_color;
+    background-image: none;
+    color: @background;
+    border: none;
+}
+
+button.destructive-action {
+    background-color: alpha(@color1, 0.8);
+    background-image: none;
+    color: @foreground;
+    border: none;
+}
+
+/* 6. SEARCH BARS & INPUTS */
+entry,
+searchentry {
+    background-color: alpha(@foreground, 0.1);
+    background-image: none;
+    color: @foreground;
+    border: 1px solid alpha(@foreground, 0.2);
+    border-radius: 6px;
+    font-family: inherit;
+    box-shadow: none;
+}
+
+entry:focus,
+searchentry:focus {
+    border-color: @color4;
+    box-shadow: inset 0 0 0 1px @color4;
+}
+
+/* 7. CHECKBOXES */
+checkbutton check {
+    background-color: alpha(@foreground, 0.1);
+    background-image: none;
+    border: 1px solid alpha(@foreground, 0.4);
+    border-radius: 4px;
+}
+
+checkbutton check:checked {
+    background-color: @accent_bg_color;
+    color: @background;
+}
+
+/* 8. LIST ROWS */
+row {
+    color: @foreground;
+}
+
+row:hover {
+    background-color: alpha(@color4, 0.25);
+}
+
+row:selected,
+row:selected:focus {
+    background-color: alpha(@color4, 0.45);
+    color: @foreground;
+}
+
+/* 9. NOTEBOOK TABS */
+notebook>header>tabs>tab {
+    background-color: transparent;
+    color: alpha(@foreground, 0.55);
+    border: none;
+    padding: 6px 12px;
+    font-family: inherit;
+}
+
+notebook>header>tabs>tab:checked {
+    color: @foreground;
+    border-bottom: 2px solid @color4;
+    background-color: transparent;
+}
+
+/* 10. SCROLLBARS */
+scrollbar {
+    background-color: transparent;
+}
+
+scrollbar trough {
+    background-color: alpha(@foreground, 0.1);
+    border-radius: 10px;
+}
+
+scrollbar slider {
+    background-color: alpha(@color4, 0.45);
+    border-radius: 10px;
+    min-width: 6px;
+    min-height: 6px;
+}
+
+scrollbar slider:hover {
+    background-color: alpha(@color4, 0.75);
+}
+
+/* 11. SEPARATORS */
+separator {
+    background-color: alpha(@color4, 0.2);
+    min-height: 1px;
+    min-width: 1px;
+}
+
+/* 12. POPOVERS & DROPDOWN MENUS (Fixed White Listboxes without !important) */
+
+/* Specificity hack: Prefixing with 'window' forces this to override default themes */
+window popover>contents,
+window popover>arrow {
+    background-color: alpha(@background, 0.95);
+    background-image: none;
+    border: 1px solid alpha(@color4, 0.3);
+    border-radius: 8px;
+    color: @foreground;
+}
+
+/* 12.5. DESCENDANT STRIPPER (High Specificity) */
+/* Nuke backgrounds from lists, views, and boxes no matter how deep they are */
+window popover contents listview,
+window popover contents listbox,
+window popover contents list,
+window popover contents treeview,
+window popover contents scrolledwindow,
+window popover contents viewport,
+window popover contents .view,
+window popover contents view,
+window popover contents box,
+window popover contents cell,
+window popover contents row {
+    /* Using 'background: transparent' shorthand overrides Libadwaita gradients */
+    background: transparent;
+    background-color: transparent;
+    background-image: none;
+    box-shadow: none;
+}
+
+/* Explicitly kill Libadwaita's alternating zebra stripe classes */
+window popover contents row.striped,
+window popover contents row:nth-child(even),
+window popover contents row:nth-child(odd) {
+    background: transparent;
+    background-color: transparent;
+    background-image: none;
+}
+
+/* Force all text to be bright, bypassing GTK's "dimmed" text styles */
+window popover contents label,
+window popover contents text,
+window popover contents label:disabled {
+    color: @foreground;
+}
+
+window popover contents label.title {
+    font-weight: bold;
+}
+
+/* Smooth hover effect for the menu items */
+window popover contents row:hover,
+window popover contents cell:hover,
+window menu row:hover {
+    background-color: alpha(@color4, 0.3);
+    color: @foreground;
+    border-radius: 6px;
+}
+
+/* 12.6. REMOVE POPOVER LIST SEPARATOR LINES */
+
+/* 1. Kill any borders attached directly to the rows */
+window popover contents listbox>row,
+window popover contents listview>row,
+window popover contents row {
+    border: none;
+    border-bottom: none;
+    border-top: none;
+}
+
+/* 2. Hide any explicit separator widgets inside the popover lists */
+window popover contents listbox separator,
+window popover contents listview separator,
+window popover contents box>separator {
+    background: transparent;
+    background-color: transparent;
+    min-height: 0;
+}
+
+/* 13. LINKS */
+label a,
+a {
+    color: @color4;
+}
+
+/* 14. FIX SIDEBAR ICON BUTTONS (Strip borders from naked icons & menu buttons) */
+stacksidebar button,
+.navigation-sidebar button,
+button.image-button,
+button.flat,
+stacksidebar menubutton,
+.navigation-sidebar menubutton,
+menubutton.image-button,
+menubutton.flat {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    box-shadow: none;
+    border-radius: 8px;
+}
+
+/* Only show a soft highlight when you hover over the icon */
+stacksidebar button:hover,
+.navigation-sidebar button:hover,
+button.image-button:hover,
+button.flat:hover,
+stacksidebar menubutton:hover,
+.navigation-sidebar menubutton:hover,
+menubutton.image-button:hover,
+menubutton.flat:hover {
+    background-color: alpha(@foreground, 0.1);
+}
+
+/* Give the actively selected tab a subtle accent background */
+stacksidebar button:checked,
+.navigation-sidebar button:checked,
+stacksidebar menubutton:checked,
+.navigation-sidebar menubutton:checked {
+    background-color: alpha(@color4, 0.2);
+}

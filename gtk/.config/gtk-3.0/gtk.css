@@ -66,27 +66,41 @@ treeview:selected {
 }
 
 /* ---------------------------------------------------------
-   HEADERBARS, TOOLBARS & TITLEBARS
+   HEADERBARS, TOOLBARS, MENUBARS & TITLEBARS
    --------------------------------------------------------- */
+/* 1. Apply the exact same transparent background to ALL top bars */
 headerbar,
 .titlebar,
-toolbar {
+toolbar,
+menubar {
     background-color: alpha(@theme_bg_color, 0.85);
     background-image: none;
     color: @theme_fg_color;
-    border-bottom: 1px solid alpha(@color4, 0.5);
-    /* Softened border */
     box-shadow: none;
     min-height: 0;
 }
 
+/* 2. Remove the border from the menubar so it blends seamlessly into the toolbar */
+menubar {
+    border-bottom: none;
+}
+
+/* 3. Apply the bottom border ONLY to the bottom of the toolbar */
+toolbar {
+    border-bottom: 1px solid alpha(@color4, 0.5);
+}
+
+/* Remove gradients/borders from backdrop (inactive) windows */
 headerbar:backdrop,
-.titlebar:backdrop {
+.titlebar:backdrop,
+menubar:backdrop,
+toolbar:backdrop {
     background-color: alpha(@theme_bg_color, 0.85);
     background-image: none;
     box-shadow: none;
 }
 
+/* Buttons inside Headerbars/Toolbars */
 headerbar button,
 toolbar button {
     background-color: transparent;
@@ -438,4 +452,57 @@ rubberband,
 .content-view rubberband {
     background-color: alpha(@color4, 0.2);
     border: 1px solid @color4;
+}
+
+/* ---------------------------------------------------------
+   INFOBAR (Trash Action Bar / Warnings)
+   --------------------------------------------------------- */
+/* 1. Make the bar and all inner boxes completely transparent */
+infobar,
+.info,
+infobar box,
+.info box,
+infobar action-area {
+    background-color: transparent;
+    /* Lets the main window's 0.85 alpha show through */
+    background-image: none;
+    color: @foreground;
+    border: none;
+    box-shadow: none;
+}
+
+/* 2. Add just one clean separator line to the very top of the bar */
+infobar {
+    border-top: 1px solid alpha(@color4, 0.3);
+}
+
+/* 3. Keep the warning label text readable */
+infobar label,
+.info label {
+    color: @foreground;
+}
+
+/* 4. Aggressively style the buttons */
+infobar button,
+.info button {
+    background-color: alpha(@color0, 0.4);
+    background-image: none;
+    color: @foreground;
+    border: 1px solid alpha(@color4, 0.5);
+    border-radius: 6px;
+    padding: 4px 12px;
+    margin: 4px 2px;
+    box-shadow: none;
+}
+
+infobar button:hover,
+.info button:hover {
+    background-color: @color4;
+    color: @background;
+    border-color: @color4;
+}
+
+infobar button:active {
+    background-color: alpha(@color4, 0.8);
+    color: @background;
 }
