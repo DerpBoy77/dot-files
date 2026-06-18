@@ -1,0 +1,10 @@
+[Unit]
+Description=Trigger Nightly Idle Shutdown
+
+[Timer]
+# Set your specific time here (Format is Year-Month-Day Hour:Minute:Second)
+OnCalendar=*-*-* 21:20:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

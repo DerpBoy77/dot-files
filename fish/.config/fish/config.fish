@@ -4,7 +4,7 @@ export LANG=en_IN.UTF-8
 
 if status is-login
     if test -z "$DISPLAY" -a "$XDG_VTNR" = 1
-        exec start-hyprland
+        exec uwsm start hyprland.desktop
     end
 end
 

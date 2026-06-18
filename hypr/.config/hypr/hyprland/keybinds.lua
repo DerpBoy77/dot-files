@@ -15,7 +15,7 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("wlogout"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(calculator))
 hl.bind(mainMod .. " + Q", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + space", hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + space", hl.dsp.exec_cmd("pkill -x rofi || " .. menu))
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("killall -SIGUSR2 waybar"))
 
 -- Clipboard history
@@ -61,12 +61,58 @@ hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Laptop multimedia keys for volume and LCD brightness
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"),
-    { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),
-    { locked = true, repeating = true })
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),
-    { locked = true, repeating = true })
+-- Create a variable to track the current mode
+-- 0 = Volume, 1 = Web Scrolling, 2 = Window Switching
+local wheel_mode = 0
+
+-- Pressing the wheel cycles through the 3 modes
+hl.bind("XF86AudioMute", function()
+    -- Add 1 to the mode. The "% 3" makes it wrap back to 0 after it hits 2.
+    wheel_mode = (wheel_mode + 1) % 3
+
+    -- Send a notification so you know which mode is active
+    if wheel_mode == 0 then
+        hl.dispatch(hl.dsp.exec_cmd("notify-send -t 1500 'Wheel Mode' 'Volume'"))
+    elseif wheel_mode == 1 then
+        hl.dispatch(hl.dsp.exec_cmd("notify-send -t 1500 'Wheel Mode' 'Mouse Scrolling'"))
+    elseif wheel_mode == 2 then
+        hl.dispatch(hl.dsp.exec_cmd("notify-send -t 1500 'Wheel Mode' 'Window Switching'"))
+    end
+end, { locked = true })
+
+
+-- Wheel Up
+hl.bind("XF86AudioRaiseVolume", function()
+    if wheel_mode == 1 then
+        -- Mode 1: Mouse scroll down
+        hl.dispatch(hl.dsp.exec_cmd("ydotool mousemove -w -- 0 1"))
+    elseif wheel_mode == 2 then
+        -- Mode 2: Global focus (works in Dwindle AND Scrolling)
+        hl.dispatch(hl.dsp.focus({ direction = "r" }))
+    else
+        -- Mode 0: Turn volume up
+        hl.dispatch(hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"))
+    end
+end, { locked = true, repeating = true })
+
+
+-- Wheel Down
+hl.bind("XF86AudioLowerVolume", function()
+    if wheel_mode == 1 then
+        -- Mode 1: Mouse scroll up
+        hl.dispatch(hl.dsp.exec_cmd("ydotool mousemove -w -- 0 -1"))
+    elseif wheel_mode == 2 then
+        -- Mode 2: Global focus (works in Dwindle AND Scrolling)
+        hl.dispatch(hl.dsp.focus({ direction = "l" }))
+    else
+        -- Mode 0: Turn volume down
+        hl.dispatch(hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"))
+    end
+end, { locked = true, repeating = true })
+
+hl.bind(mainMod .. " + XF86AudioRaiseVolume", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + XF86AudioLowerVolume", hl.dsp.focus({ workspace = "e-1" }))
+
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),
     { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"), { locked = true, repeating = true })
@@ -77,3 +123,21 @@ hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true })
+
+-- 1. SWAP COLUMNS: Move the entire active column left or right
+hl.bind(mainMod .. " + SHIFT + left", hl.dsp.layout("swapcol l"))
+hl.bind(mainMod .. " + SHIFT + right", hl.dsp.layout("swapcol r"))
+
+-- 2. SMART MERGING: Move a window into the previous/next column, or expel it if it's currently stacked
+hl.bind(mainMod .. " + SHIFT + up", hl.dsp.layout("consume_or_expel prev"))
+hl.bind(mainMod .. " + SHIFT + down", hl.dsp.layout("consume_or_expel next"))
+
+-- 3. PROMOTE: Break a stacked window out into its own brand new column
+hl.bind(mainMod .. " + P", hl.dsp.layout("promote"))
+
+-- 4. PANNING: Scroll the view of the layout left/right without changing your active window
+hl.bind(mainMod .. " + ALT + mouse_up", hl.dsp.layout("move +col"))
+hl.bind(mainMod .. " + ALT + mouse_down", hl.dsp.layout("move -col"))
+
+-- Cycle column width: 33% -> 50% -> 66% -> 100% -> back to 33%
+hl.bind(mainMod .. " + ALT + W", hl.dsp.layout("colresize +conf"))

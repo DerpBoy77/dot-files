@@ -25,7 +25,7 @@ hl.on("hyprland.start", function()
     "hypridle",
     "systemctl --user start hyprpolkitagent",
     "udiskie",
-    "[workspace special:magic silent] thunar"
+    "[workspace special:magic silent] thunar",
   }
 
   for _, cmd in ipairs(autostart_cmds) do
@@ -33,54 +33,30 @@ hl.on("hyprland.start", function()
   end
 end)
 
-
--------------------------------
----- ENVIRONMENT VARIABLES ----
--------------------------------
-
-local env_vars = {
-  { "XCURSOR_SIZE",                        "24" },
-  { "HYPRCURSOR_SIZE",                     "24" },
-  { "LIBVA_DRIVER_NAME",                   "nvidia" },
-  { "__GLX_VENDOR_LIBRARY_NAME",           "nvidia" },
-  { "ELECTRON_OZONE_PLATFORM_HINT",        "auto" },
-  { "NVD_BACKEND",                         "direct" },
-  { "MOZ_ENABLE_WAYLAND",                  "1" },
-  { "QT_QPA_PLATFORM",                     "wayland;xcb" },
-  { "QT_QPA_PLATFORMTHEME",                "qt6ct" },
-  { "QT_WAYLAND_DISABLE_WINDOWDECORATION", "1" },
-  { "QT_AUTO_SCREEN_SCALE_FACTOR",         "1" },
-  { "MOZ_DISABLE_RDD_SANDBOX",             "1" },
-  { "__EGL_VENDOR_LIBRARY_FILENAMES",      "/usr/share/glvnd/egl_vendor.d/10_nvidia.json" }
-}
-
-for _, v in ipairs(env_vars) do
-  hl.env(v[1], v[2])
-end
-
 -----------------------
 ---- LOOK AND FEEL ----
 -----------------------
 
 hl.config({
   general = {
-    gaps_in          = 5,
-    gaps_out         = 15,
+    gaps_in           = 5,
+    gaps_out          = 15,
 
-    border_size      = 3,
+    border_size       = 3,
 
-    col              = {
+    col               = {
       active_border   = c.color2,
       inactive_border = c.color8,
     },
 
     -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
-    resize_on_border = false,
+    resize_on_border  = false,
 
     -- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
-    allow_tearing    = false,
+    allow_tearing     = false,
 
-    layout           = "dwindle",
+    layout            = "dwindle",
+    no_focus_fallback = true,
   },
 
   decoration = {
@@ -147,7 +123,7 @@ hl.config({
   misc = {
     force_default_wallpaper = 0,    -- Set to 0 or 1 to disable the anime mascot wallpapers
     disable_hyprland_logo   = true, -- If true disables the random hyprland logo / anime girl background. :(
-    vrr                     = 3
+    vrr                     = 2
   },
 })
 

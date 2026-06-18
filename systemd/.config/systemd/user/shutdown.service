@@ -1,0 +1,9 @@
+[Unit]
+Description=Nightly Hypridle Shutdown Watcher
+
+[Service]
+Type=simple
+# Launches a temporary hypridle watcher using our specific config
+ExecStart=/usr/bin/hypridle -c %h/.config/hypr/hypridle-night.conf
+# Automatically kills the watcher after 8 hours
+RuntimeMaxSec=8h
