@@ -1,3 +1,8 @@
+/* ==========================================================================
+   GTK4 / LIBADWAITA THEME OVERRIDE
+   Matches transparent Kitty terminal & Wallust dynamic colors
+   ========================================================================== */
+
 /* 1. Import your Wallust colors */
 @import url("../../.cache/wallust/colors-waybar.css");
 
@@ -39,8 +44,8 @@ overlay,
 flowbox,
 flowboxchild,
 .expander-widget {
-    background-color: transparent;
     background: transparent;
+    background-color: transparent;
     background-image: none;
     color: @foreground;
 }
@@ -61,8 +66,8 @@ menubutton,
 dropdown {
     background-color: alpha(@foreground, 0.1);
     background-image: none;
-    /* This is what finally kills the white Adwaita boxes! */
     color: @foreground;
+    /* Kills the white Adwaita boxes */
     border: 1px solid alpha(@foreground, 0.2);
     border-radius: 6px;
     font-family: inherit;
@@ -178,9 +183,7 @@ separator {
     min-width: 1px;
 }
 
-/* 12. POPOVERS & DROPDOWN MENUS (Fixed White Listboxes without !important) */
-
-/* Specificity hack: Prefixing with 'window' forces this to override default themes */
+/* 12. POPOVERS & DROPDOWN MENUS */
 window popover>contents,
 window popover>arrow {
     background-color: alpha(@background, 0.95);
@@ -190,8 +193,7 @@ window popover>arrow {
     color: @foreground;
 }
 
-/* 12.5. DESCENDANT STRIPPER (High Specificity) */
-/* Nuke backgrounds from lists, views, and boxes no matter how deep they are */
+/* Nuke backgrounds from lists, views, and boxes inside popovers */
 window popover contents listview,
 window popover contents listbox,
 window popover contents list,
@@ -203,7 +205,6 @@ window popover contents view,
 window popover contents box,
 window popover contents cell,
 window popover contents row {
-    /* Using 'background: transparent' shorthand overrides Libadwaita gradients */
     background: transparent;
     background-color: transparent;
     background-image: none;
@@ -219,7 +220,7 @@ window popover contents row:nth-child(odd) {
     background-image: none;
 }
 
-/* Force all text to be bright, bypassing GTK's "dimmed" text styles */
+/* Force text to be bright */
 window popover contents label,
 window popover contents text,
 window popover contents label:disabled {
@@ -230,27 +231,36 @@ window popover contents label.title {
     font-weight: bold;
 }
 
-/* Smooth hover effect for the menu items */
+/* Ensure unhovered menu buttons stay transparent instead of looking like regular buttons */
+window popover.menu contents button,
+window popover.menu contents modelbutton {
+    background: transparent;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+/* Smooth hover effect for menu items (Fixes the solid white hover box) */
+window popover.menu contents button:hover,
+window popover.menu contents button:focus,
+window popover.menu contents modelbutton:hover,
+window popover.menu contents modelbutton:focus,
 window popover contents row:hover,
 window popover contents cell:hover,
-window menu row:hover {
+window menu row:hover,
+window menu button:hover {
     background-color: alpha(@color4, 0.3);
     color: @foreground;
     border-radius: 6px;
 }
 
-/* 12.6. REMOVE POPOVER LIST SEPARATOR LINES */
-
-/* 1. Kill any borders attached directly to the rows */
+/* Kill borders and separator lines in popovers */
 window popover contents listbox>row,
 window popover contents listview>row,
 window popover contents row {
     border: none;
-    border-bottom: none;
-    border-top: none;
 }
 
-/* 2. Hide any explicit separator widgets inside the popover lists */
 window popover contents listbox separator,
 window popover contents listview separator,
 window popover contents box>separator {
@@ -265,7 +275,16 @@ a {
     color: @color4;
 }
 
-/* 14. FIX SIDEBAR ICON BUTTONS (Strip borders from naked icons & menu buttons) */
+/* 14. SIDEBARS & NAVIGATION */
+stacksidebar,
+.navigation-sidebar,
+.sidebar,
+list {
+    background: transparent;
+    background-color: transparent;
+    background-image: none;
+}
+
 stacksidebar button,
 .navigation-sidebar button,
 button.image-button,
@@ -281,7 +300,6 @@ menubutton.flat {
     border-radius: 8px;
 }
 
-/* Only show a soft highlight when you hover over the icon */
 stacksidebar button:hover,
 .navigation-sidebar button:hover,
 button.image-button:hover,
@@ -293,10 +311,153 @@ menubutton.flat:hover {
     background-color: alpha(@foreground, 0.1);
 }
 
-/* Give the actively selected tab a subtle accent background */
 stacksidebar button:checked,
 .navigation-sidebar button:checked,
 stacksidebar menubutton:checked,
 .navigation-sidebar menubutton:checked {
     background-color: alpha(@color4, 0.2);
+}
+
+/* 15. BOXED LISTS (Settings "Cards") */
+listbox,
+.boxed-list {
+    background: transparent;
+    background-color: alpha(@foreground, 0.05);
+    /* Subtle tint */
+    border: 1px solid alpha(@foreground, 0.2);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+listbox>row,
+.boxed-list>row {
+    background: transparent;
+    background-color: transparent;
+}
+
+/* 16. SWITCHES (Toggle Sliders) */
+switch {
+    background-color: alpha(@foreground, 0.1);
+    border: 1px solid alpha(@foreground, 0.2);
+    border-radius: 14px;
+}
+
+switch slider {
+    background-color: alpha(@foreground, 0.6);
+    border-radius: 50%;
+    border: none;
+    box-shadow: none;
+}
+
+switch:checked {
+    background-color: @accent_bg_color;
+    border-color: @accent_bg_color;
+}
+
+switch:checked slider {
+    background-color: @background;
+}
+
+/* 17. SCALES (Volume/Brightness Sliders) */
+scale trough {
+    background-color: alpha(@foreground, 0.1);
+    border-radius: 10px;
+}
+
+scale highlight {
+    background-color: @accent_bg_color;
+    border-radius: 10px;
+}
+
+scale slider {
+    background-color: @accent_bg_color;
+    border-radius: 50%;
+    box-shadow: none;
+    border: none;
+}
+
+/* 18. TOOLTIPS */
+tooltip {
+    background-color: alpha(@background, 0.95);
+    border: 1px solid alpha(@color4, 0.3);
+    border-radius: 8px;
+    color: @foreground;
+    text-shadow: none;
+}
+
+/* 19. MULTI-LINE TEXT AREAS */
+textview {
+    background-color: alpha(@foreground, 0.05);
+    border: 1px solid alpha(@foreground, 0.2);
+    border-radius: 6px;
+}
+
+textview text {
+    background-color: transparent;
+    color: @foreground;
+}
+
+/* 20. DIALOGS & POPUPS */
+window.dialog,
+window.popup,
+messagedialog,
+messagedialog .dialog-vbox {
+    background-color: @window_bg_color;
+    background-image: none;
+}
+
+/* 21. TOAST NOTIFICATIONS */
+toast {
+    background-color: alpha(@background, 0.9);
+    border: 1px solid alpha(@color4, 0.5);
+    color: @foreground;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 22. RADIO BUTTONS */
+checkbutton radio {
+    background-color: alpha(@foreground, 0.1);
+    background-image: none;
+    border: 1px solid alpha(@foreground, 0.4);
+    border-radius: 50%;
+}
+
+checkbutton radio:checked {
+    background-color: @accent_bg_color;
+    color: @background;
+}
+
+/* 23. PROGRESS BARS */
+progressbar trough {
+    background-color: alpha(@foreground, 0.1);
+    border-radius: 10px;
+}
+
+progressbar progress {
+    background-color: @accent_bg_color;
+    border-radius: 10px;
+}
+
+/* 24. SPIN BUTTONS (Number Inputs) */
+spinbutton {
+    background-color: alpha(@foreground, 0.1);
+    border: 1px solid alpha(@foreground, 0.2);
+    border-radius: 6px;
+    box-shadow: none;
+}
+
+spinbutton text {
+    background-color: transparent;
+    color: @foreground;
+}
+
+spinbutton button {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+spinbutton button:hover {
+    background-color: alpha(@foreground, 0.1);
 }

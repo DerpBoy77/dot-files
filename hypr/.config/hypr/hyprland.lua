@@ -8,6 +8,7 @@ hl.monitor({
   mode     = "1920x1080@144",
   position = "auto",
   scale    = "auto",
+  bitdepth = 10
 })
 
 -------------------
@@ -81,7 +82,7 @@ hl.config({
       vibrancy          = 0.1696,
       new_optimizations = true,
       ignore_opacity    = true,
-      xray              = false
+      xray              = false,
     },
 
     border_part_of_window = false
@@ -123,10 +124,9 @@ hl.config({
   misc = {
     force_default_wallpaper = 0,    -- Set to 0 or 1 to disable the anime mascot wallpapers
     disable_hyprland_logo   = true, -- If true disables the random hyprland logo / anime girl background. :(
-    vrr                     = 2
+    vrr                     = 0
   },
 })
-
 
 ---------------
 ---- INPUT ----
@@ -199,6 +199,18 @@ hl.window_rule({
   opacity = 0.875,
 })
 
+hl.window_rule({
+  name = "sushi_quicklook",
+  match = {
+    class = "^(org.gnome.NautilusPreviewer)$"
+  },
+  float = true,
+  center = true,
+  dim_around = true,
+  animation = "popin",
+  opacity = "0.9 0.9" -- active and inactive opacity
+})
+
 hl.layer_rule({
   name = "rofi",
   animation = "popin",
@@ -208,6 +220,14 @@ hl.layer_rule({
   match = {
     namespace = "rofi"
   }
+})
+
+hl.layer_rule({
+  name = "screenshot",
+  match = {
+    namespace = "selection"
+  },
+  animation = "fade"
 })
 
 hl.workspace_rule({

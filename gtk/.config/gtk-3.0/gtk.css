@@ -1,3 +1,8 @@
+/* ==========================================================================
+   GTK3 THEME OVERRIDE
+   Matches transparent Kitty terminal & Wallust dynamic colors
+   ========================================================================== */
+
 /* 1. Import the Wallust colors */
 @import url("../../.cache/wallust/colors-waybar.css");
 
@@ -12,7 +17,7 @@
 @define-color theme_view_active_fg_color @background;
 
 /* ---------------------------------------------------------
-   GLOBAL & ACCESSIBILITY FIXES
+   3. GLOBAL & ACCESSIBILITY FIXES
    --------------------------------------------------------- */
 /* Add global transitions for a smoother UI feel */
 button,
@@ -24,21 +29,20 @@ switch slider {
     transition: all 0.2s ease-in-out;
 }
 
-/* Clearer focus rings for keyboard navigation */
-*:focus-visible {
+/* Clearer focus rings for keyboard navigation (Fixed for GTK3) */
+*:focus {
     outline: 2px solid alpha(@color4, 0.8);
     outline-offset: -2px;
 }
 
 /* ---------------------------------------------------------
-   CORE WINDOW & LAYOUT
+   4. CORE WINDOW & LAYOUT
    --------------------------------------------------------- */
 window,
 window.background {
     background-color: alpha(@theme_bg_color, 0.85);
     color: @theme_fg_color;
     border-radius: 8px;
-    /* Slightly rounded window corners */
 }
 
 decoration {
@@ -46,13 +50,18 @@ decoration {
     background: transparent;
 }
 
+/* Strip backgrounds from basic structural elements */
 .view,
 .standard-view,
 iconview,
 treeview,
-textview {
+textview,
+viewport,
+scrolledwindow,
+paned {
     background-color: transparent;
     color: @theme_fg_color;
+    background-image: none;
 }
 
 .view:selected,
@@ -62,13 +71,11 @@ treeview:selected {
     background-color: @theme_selected_bg_color;
     color: @theme_selected_fg_color;
     border-radius: 4px;
-    /* Soften selected items */
 }
 
 /* ---------------------------------------------------------
-   HEADERBARS, TOOLBARS, MENUBARS & TITLEBARS
+   5. HEADERBARS, TOOLBARS, MENUBARS & TITLEBARS
    --------------------------------------------------------- */
-/* 1. Apply the exact same transparent background to ALL top bars */
 headerbar,
 .titlebar,
 toolbar,
@@ -80,24 +87,12 @@ menubar {
     min-height: 0;
 }
 
-/* 2. Remove the border from the menubar so it blends seamlessly into the toolbar */
 menubar {
     border-bottom: none;
 }
 
-/* 3. Apply the bottom border ONLY to the bottom of the toolbar */
 toolbar {
     border-bottom: 1px solid alpha(@color4, 0.5);
-}
-
-/* Remove gradients/borders from backdrop (inactive) windows */
-headerbar:backdrop,
-.titlebar:backdrop,
-menubar:backdrop,
-toolbar:backdrop {
-    background-color: alpha(@theme_bg_color, 0.85);
-    background-image: none;
-    box-shadow: none;
 }
 
 /* Buttons inside Headerbars/Toolbars */
@@ -118,7 +113,7 @@ toolbar button:hover {
 }
 
 /* ---------------------------------------------------------
-   SIDEBARS
+   6. SIDEBARS
    --------------------------------------------------------- */
 .sidebar,
 stacksidebar,
@@ -127,7 +122,6 @@ placessidebar list {
     background-color: alpha(@color0, 0.5);
     color: @foreground;
     border-right: 1px solid alpha(@color4, 0.3);
-    /* Softened border */
 }
 
 .sidebar row,
@@ -135,7 +129,6 @@ stacksidebar row,
 placessidebar row {
     border-radius: 4px;
     margin: 0 4px;
-    /* Prevents selected rows from touching the absolute edge */
 }
 
 .sidebar row:selected,
@@ -153,7 +146,7 @@ placessidebar row:hover {
 }
 
 /* ---------------------------------------------------------
-   INPUTS & ENTRIES
+   7. INPUTS & ENTRIES
    --------------------------------------------------------- */
 entry {
     background-color: alpha(@color0, 0.5);
@@ -161,8 +154,8 @@ entry {
     border: 1px solid alpha(@color4, 0.5);
     caret-color: @foreground;
     padding: 6px;
-    /* Slightly larger hit area */
     border-radius: 6px;
+    box-shadow: none;
 }
 
 entry:focus {
@@ -177,7 +170,7 @@ entry:disabled {
 }
 
 /* ---------------------------------------------------------
-   BUTTONS (Standard)
+   8. BUTTONS
    --------------------------------------------------------- */
 button {
     background-color: alpha(@color0, 0.4);
@@ -187,7 +180,6 @@ button {
     box-shadow: none;
     text-shadow: none;
     padding: 4px 12px;
-    /* Better proportions */
     border-radius: 6px;
 }
 
@@ -234,7 +226,21 @@ treeview button.header:hover {
 }
 
 /* ---------------------------------------------------------
-   CHECKBOXES & RADIO BUTTONS
+   9. COMBOBOXES (Dropdowns)
+   --------------------------------------------------------- */
+combobox button {
+    padding: 4px 10px;
+}
+
+combobox window.popup,
+combobox menu {
+    background-color: alpha(@color0, 0.95);
+    border: 1px solid alpha(@color4, 0.5);
+    border-radius: 6px;
+}
+
+/* ---------------------------------------------------------
+   10. CHECKBOXES & RADIO BUTTONS
    --------------------------------------------------------- */
 checkbutton check,
 radiobutton radio {
@@ -248,12 +254,11 @@ checkbutton check:checked,
 radiobutton radio:checked {
     background-color: @color4;
     color: @background;
-    /* Checkmark/Dot color */
     border-color: @color4;
 }
 
 /* ---------------------------------------------------------
-   TABS (Notebooks)
+   11. TABS (Notebooks)
    --------------------------------------------------------- */
 notebook header {
     background-color: alpha(@color0, 0.5);
@@ -266,15 +271,12 @@ notebook header tab {
     border: none;
     padding: 6px 10px;
     border-radius: 6px 6px 0 0;
-    /* Rounded top corners only */
 }
 
 notebook header tab:checked {
     background-color: alpha(@color4, 0.2);
     color: @foreground;
-    /* Kept foreground so text isn't washed out if tab background is light */
     border-bottom: 2px solid @color4;
-    /* Underline indicator for active tab */
     box-shadow: none;
 }
 
@@ -287,26 +289,28 @@ notebook stack {
 }
 
 /* ---------------------------------------------------------
-   MENUS & POPOVERS
+   12. MENUS & POPOVERS
    --------------------------------------------------------- */
 menu,
 .menu,
-popover {
+popover,
+popover.background {
     background-color: alpha(@color0, 0.95);
-    /* Slightly darker for contrast */
     color: @foreground;
     border: 1px solid alpha(@color4, 0.5);
     border-radius: 8px;
-    /* Modern floating feel */
     box-shadow: 0px 4px 12px alpha(#000000, 0.3);
-    /* Subtle drop shadow */
 }
 
 menu item,
 .menu item,
-popover modelbutton {
+popover modelbutton,
+popover button {
     background-color: transparent;
+    background-image: none;
     color: @foreground;
+    border: none;
+    box-shadow: none;
     padding: 6px 8px;
     border-radius: 4px;
     margin: 2px 4px;
@@ -314,7 +318,8 @@ popover modelbutton {
 
 menu item:hover,
 .menu item:hover,
-popover modelbutton:hover {
+popover modelbutton:hover,
+popover button:hover {
     background-color: @color4;
     color: @background;
 }
@@ -322,12 +327,11 @@ popover modelbutton:hover {
 menu separator,
 popover separator {
     background-color: alpha(@color4, 0.2);
-    /* Replaced 'color' with 'background-color' for line rendering */
     margin: 4px 0;
 }
 
 /* ---------------------------------------------------------
-   SCROLLBARS
+   13. SCROLLBARS & SLIDERS
    --------------------------------------------------------- */
 scrollbar,
 scrollbar trough {
@@ -340,33 +344,33 @@ scrollbar slider {
     min-height: 6px;
     border-radius: 10px;
     margin: 2px;
-    /* Prevent slider from touching extreme edge */
 }
 
 scrollbar slider:hover {
     background-color: @color4;
 }
 
-/* ---------------------------------------------------------
-   DIALOGS
-   --------------------------------------------------------- */
-dialog,
-messagedialog,
-filechooser {
-    background-color: alpha(@color0, 0.95);
-    color: @foreground;
-    border-radius: 8px;
+/* SCALES (Volume/Brightness Sliders) */
+scale trough {
+    background-color: alpha(@color0, 0.6);
+    border-radius: 10px;
 }
 
-dialog headerbar,
-messagedialog headerbar {
-    background-color: transparent;
-    border-bottom: 1px solid alpha(@color4, 0.3);
+scale highlight {
+    background-color: @color4;
+    border-radius: 10px;
+}
+
+scale slider {
+    background-color: @foreground;
+    border-radius: 50%;
+    box-shadow: none;
 }
 
 /* ---------------------------------------------------------
-   MISC WIDGETS
+   14. MISC WIDGETS
    --------------------------------------------------------- */
+/* Switches */
 switch {
     background-color: alpha(@color0, 0.6);
     border: 1px solid alpha(@color4, 0.5);
@@ -383,6 +387,7 @@ switch slider {
     border-radius: 50%;
 }
 
+/* Progressbars */
 progressbar trough {
     background-color: alpha(@color0, 0.6);
     border: none;
@@ -394,7 +399,22 @@ progressbar progress {
     border-radius: 4px;
 }
 
-tooltip {
+/* Spinbuttons (Number inputs) */
+spinbutton {
+    background-color: transparent;
+}
+
+spinbutton button {
+    background-color: transparent;
+    color: @foreground;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Tooltips */
+tooltip,
+tooltip.background {
     background-color: alpha(@color0, 0.95);
     color: @foreground;
     border: 1px solid alpha(@color4, 0.5);
@@ -403,86 +423,54 @@ tooltip {
 }
 
 /* ---------------------------------------------------------
-   BACKDROP FIXES (Unfocused Windows)
+   15. OVERRIDES (Kill Ugly GTK3 Defaults)
    --------------------------------------------------------- */
-/* Keep background and text color identical to active window */
-window:backdrop,
-.thunar:backdrop {
-    background-color: alpha(@theme_bg_color, 0.85);
-    color: @theme_fg_color;
-}
-
-/* Keep headerbars, toolbars, and titlebars identical to active state */
-headerbar:backdrop,
-toolbar:backdrop,
-.titlebar:backdrop {
-    background-color: alpha(@theme_bg_color, 0.85);
+/* Remove the black shadow gradient when scrolling past edges */
+overshoot,
+undershoot {
+    background: none;
     background-image: none;
-    color: @theme_fg_color;
     box-shadow: none;
-    border-bottom: 1px solid alpha(@color4, 0.5);
-    /* Matches your active state */
-}
-
-/* FIX: Prevent the green line from appearing under menus/tabs when unfocused */
-menubar:backdrop,
-notebook header:backdrop {
-    background-color: transparent;
-    background-image: none;
-    border: none;
-    box-shadow: none;
-}
-
-/* Keep status bar identical */
-statusbar:backdrop,
-.statusbar:backdrop {
-    background-color: transparent;
-    color: @theme_fg_color;
-}
-
-/* Ensure inactive inputs/buttons don't aggressively wash out */
-entry:backdrop,
-button:backdrop {
-    color: @foreground;
-    border-color: alpha(@color4, 0.5);
-}
-
-/* Click-and-drag selection box */
-rubberband,
-.content-view rubberband {
-    background-color: alpha(@color4, 0.2);
-    border: 1px solid @color4;
 }
 
 /* ---------------------------------------------------------
-   INFOBAR (Trash Action Bar / Warnings)
+   16. DIALOGS & INFOBARS
    --------------------------------------------------------- */
-/* 1. Make the bar and all inner boxes completely transparent */
+dialog,
+messagedialog,
+filechooser {
+    background-color: alpha(@color0, 0.95);
+    color: @foreground;
+    border-radius: 8px;
+}
+
+dialog headerbar,
+messagedialog headerbar {
+    background-color: transparent;
+    border-bottom: 1px solid alpha(@color4, 0.3);
+}
+
 infobar,
 .info,
 infobar box,
 .info box,
 infobar action-area {
     background-color: transparent;
-    /* Lets the main window's 0.85 alpha show through */
     background-image: none;
     color: @foreground;
     border: none;
     box-shadow: none;
 }
 
-/* 2. Add just one clean separator line to the very top of the bar */
 infobar {
     border-top: 1px solid alpha(@color4, 0.3);
 }
 
-/* 3. Keep the warning label text readable */
 infobar label,
 .info label {
     color: @foreground;
 }
 
-/* 4. Aggressively style the buttons */
 infobar button,
 .info button {
     background-color: alpha(@color0, 0.4);
@@ -502,7 +490,153 @@ infobar button:hover,
     border-color: @color4;
 }
 
-infobar button:active {
-    background-color: alpha(@color4, 0.8);
+/* ---------------------------------------------------------
+   17. BACKDROP FIXES (Unfocused Windows)
+   --------------------------------------------------------- */
+window:backdrop,
+.thunar:backdrop {
+    background-color: alpha(@theme_bg_color, 0.85);
+    color: @theme_fg_color;
+}
+
+headerbar:backdrop,
+toolbar:backdrop,
+.titlebar:backdrop {
+    background-color: alpha(@theme_bg_color, 0.85);
+    background-image: none;
+    color: @theme_fg_color;
+    box-shadow: none;
+    border-bottom: 1px solid alpha(@color4, 0.5);
+}
+
+menubar:backdrop,
+notebook header:backdrop {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    box-shadow: none;
+}
+
+statusbar:backdrop,
+.statusbar:backdrop {
+    background-color: transparent;
+    color: @theme_fg_color;
+}
+
+entry:backdrop,
+button:backdrop {
+    color: @foreground;
+    border-color: alpha(@color4, 0.5);
+}
+
+rubberband,
+.content-view rubberband {
+    background-color: alpha(@color4, 0.2);
+    border: 1px solid @color4;
+}
+
+/* ---------------------------------------------------------
+   LISTBOXES (Settings Cards)
+   --------------------------------------------------------- */
+list {
+    background-color: transparent;
+}
+
+listbox {
+    background-color: alpha(@foreground, 0.05);
+    /* Subtle tint */
+    border: 1px solid alpha(@foreground, 0.2);
+    border-radius: 8px;
+    background-image: none;
+}
+
+listbox row {
+    background-color: transparent;
+    border: none;
+}
+
+listbox row:hover {
+    background-color: alpha(@color4, 0.2);
+    color: @foreground;
+}
+
+listbox row:selected {
+    background-color: @color4;
+
     color: @background;
+}
+
+/* ---------------------------------------------------------
+   9. COMBOBOXES (Dropdowns)
+   --------------------------------------------------------- */
+combobox button,
+combobox button.combo {
+    background-color: alpha(@color0, 0.4);
+    background-image: none;
+    border: 1px solid alpha(@color4, 0.5);
+    border-radius: 6px;
+    color: @foreground;
+    padding: 4px 10px;
+}
+
+combobox cellview,
+combobox label {
+    color: @foreground;
+}
+
+/* Fix for disabled dropdowns like "GL Rendering -> When needed" */
+combobox button:disabled,
+combobox button:disabled cellview,
+combobox button:disabled label {
+    color: alpha(@foreground, 0.3);
+    background-color: transparent;
+    border-color: alpha(@color4, 0.2);
+}
+
+combobox window.popup,
+combobox menu {
+    background-color: alpha(@color0, 0.95);
+    border: 1px solid alpha(@color4, 0.5);
+    border-radius: 6px;
+}
+
+/* Switches */
+switch {
+    background-color: alpha(@foreground, 0.1);
+    background-image: none;
+    border: 1px solid alpha(@foreground, 0.3);
+    border-radius: 14px;
+}
+
+switch slider {
+    background-color: alpha(@foreground, 0.6);
+    background-image: none;
+    border: none;
+    border-radius: 50%;
+    box-shadow: none;
+}
+
+switch:checked {
+    background-color: @color4;
+    border-color: @color4;
+}
+
+switch:checked slider {
+    background-color: @background;
+}
+
+/* 24. KILL SUSHI / HEADERBAR FLOATING FOCUS RINGS (High Specificity) */
+window.background headerbar.titlebar button.text-button:focus,
+window.background headerbar.titlebar button.text-button:focus-visible,
+window headerbar button:focus,
+window headerbar button:focus-visible {
+    /* Kill the floating outline entirely */
+    outline-style: none;
+    outline-width: 0;
+    outline-color: transparent;
+    outline-offset: 0;
+    box-shadow: none;
+
+    /* Make the actual button border glow teal instead */
+    border: none;
 }

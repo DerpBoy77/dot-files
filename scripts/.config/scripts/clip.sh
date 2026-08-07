@@ -65,4 +65,4 @@ printf '%s\n' "$SELECTED" | cliphist decode | wl-copy
 sleep 0.15
 
 # Send the paste shortcut via wtype
-wtype -M ctrl v -m ctrl
+wtype -M ctrl -M shift v -m shift -m ctrl

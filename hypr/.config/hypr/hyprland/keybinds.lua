@@ -26,13 +26,14 @@ hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
 
 -- Screenshot a region to clipboard (The most common use)
 hl.bind(mainMod .. " + SHIFT + S",
-    hl.dsp.exec_cmd("bash -c 'geom=$(slurp) && sleep 0.2 && grim -g \"$geom\" - | wl-copy'"))
+    hl.dsp.exec_cmd("bash -c 'pgrep slurp && exit; geom=$(slurp) && sleep 0.2 && grim -g \"$geom\" - | wl-copy'"))
 
 -- Screenshot a region and save to file
-hl.bind("ALT + SHIFT + S", hl.dsp.exec_cmd("grim -g \"$(slurp)\" ~/Pictures/Screenshots/$(date +'%s_grim.png')"))
+hl.bind("ALT + SHIFT + S",
+    hl.dsp.exec_cmd("pgrep slurp && exit; grim -g \"$(slurp)\" ~/Pictures/Screenshots/$(date +'%s_grim.png')"))
 
 -- Screenshot the whole screen to clipboard
-hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("grim - | wl-copy"))
+hl.bind(mainMod .. " + O", hl.dsp.exec_cmd("grim - | wl-copy"))
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left", hl.dsp.focus({ direction = "left" }))
