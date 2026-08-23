@@ -20,3 +20,5 @@ colors-hyprlock = { template = "colors-hyprlock.conf", target = "~/.cache/wallus
 vscode = { src = 'vscode.json', dst = '~/.cache/wallust/colors.json' }
 vscode2 = { src = 'vscode', dst = '~/.cache/wallust/colors' }
 qt6ct = { template = 'qtct-colors.conf', target = '~/.config/qt6ct/colors/qt6ct-colors.conf' }
+quickshell-colors = { template = "Colors.qml", target = "~/.config/quickshell/Colors.qml" }
+zen = {template = "user.js", target = "~/.config/zen/xm7y92b3.Default (release)/user.js"}

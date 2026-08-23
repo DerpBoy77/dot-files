@@ -41,8 +41,8 @@ hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.39, bezier = "a
 
 -- Layers (Waybar, Rofi, Polkit, Sushi, etc)
 hl.animation({ leaf = "layers", enabled = true, speed = 1, spring = "smooth_snap" })
-hl.animation({ leaf = "layersIn", enabled = true, speed = 1, spring = "smooth_snap", style = "popin 85%" })
-hl.animation({ leaf = "layersOut", enabled = true, speed = 1, spring = "ultra_snap", style = "popin 85%" })
+hl.animation({ leaf = "layersIn", enabled = true, speed = 1, spring = "smooth_snap", style = "fade" })
+hl.animation({ leaf = "layersOut", enabled = true, speed = 1, spring = "ultra_snap", style = "fade" })
 
 -- Workspaces
 hl.animation({ leaf = "workspaces", enabled = true, speed = 1, spring = "workspace_snap", style = "slide" })

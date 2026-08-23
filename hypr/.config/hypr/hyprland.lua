@@ -17,7 +17,7 @@ hl.monitor({
 
 hl.on("hyprland.start", function()
   local autostart_cmds = {
-    "waybar",
+    "quickshell",
     "awww-daemon",
     "wl-paste --type text --watch cliphist store",
     "wl-paste --type image --watch cliphist store",
@@ -196,7 +196,7 @@ hl.window_rule({
 hl.window_rule({
   name = "vsCode",
   match = { class = "code" },
-  opacity = 0.875,
+  opacity = 0.75,
 })
 
 hl.window_rule({
@@ -223,11 +223,13 @@ hl.layer_rule({
 })
 
 hl.layer_rule({
-  name = "screenshot",
+  name = "quickshell",
+  blur = true,
+  ignore_alpha = 0.5,
+  blur_popups = true,
   match = {
-    namespace = "selection"
-  },
-  animation = "fade"
+    namespace = "quickshell"
+  }
 })
 
 hl.workspace_rule({
