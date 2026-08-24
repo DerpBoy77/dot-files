@@ -1,48 +1,60 @@
 /* ==========================================================================
    GTK3 THEME OVERRIDE
-   Matches transparent Kitty terminal & Wallust dynamic colors
+   Matches Kitty 0.70 transparency & Quickshell Dynamic Island Glass
    ========================================================================== */
 
-/* 1. Import the Wallust colors */
+/* 1. Import compiled Wallust palette from cache */
 @import url("../../.cache/wallust/colors-waybar.css");
 
-/* 2. Global Variable Definitions */
+/* 2. Global Semantic Mappings */
 @define-color theme_bg_color @background;
 @define-color theme_fg_color @foreground;
+@define-color theme_base_color @background;
+@define-color theme_text_color @foreground;
 @define-color theme_selected_bg_color @color4;
 @define-color theme_selected_fg_color @background;
-@define-color theme_text_color @foreground;
-@define-color theme_base_color @background;
 @define-color theme_view_active_bg_color @color4;
 @define-color theme_view_active_fg_color @background;
+@define-color warning_color @color3;
+@define-color error_color @color1;
+@define-color success_color @color2;
 
 /* ---------------------------------------------------------
-   3. GLOBAL & ACCESSIBILITY FIXES
+   3. GLOBAL TRANSITIONS & ACCESSIBILITY
    --------------------------------------------------------- */
-/* Add global transitions for a smoother UI feel */
 button,
 entry,
 row,
 tab,
-menu item,
-switch slider {
-    transition: all 0.2s ease-in-out;
+menuitem,
+switch,
+switch slider,
+scrollbar slider,
+scale highlight {
+    transition: all 0.14s cubic-bezier(0, 0, 0.2, 1);
 }
 
-/* Clearer focus rings for keyboard navigation (Fixed for GTK3) */
 *:focus {
-    outline: 2px solid alpha(@color4, 0.8);
+    outline: 2px solid alpha(@color4, 0.6);
     outline-offset: -2px;
 }
 
 /* ---------------------------------------------------------
-   4. CORE WINDOW & LAYOUT
+   4. CORE WINDOW & THUNAR CONTAINER (0.70 Kitty Transparency)
    --------------------------------------------------------- */
 window,
-window.background {
-    background-color: alpha(@theme_bg_color, 0.85);
-    color: @theme_fg_color;
-    border-radius: 8px;
+window.background,
+window.thunar,
+.thunar {
+    background-color: alpha(@background, 0.70);
+    color: @foreground;
+    border-radius: 12px;
+}
+
+window:backdrop,
+window.thunar:backdrop {
+    background-color: alpha(@background, 0.70);
+    color: alpha(@foreground, 0.80);
 }
 
 decoration {
@@ -50,7 +62,7 @@ decoration {
     background: transparent;
 }
 
-/* Strip backgrounds from basic structural elements */
+/* Make views transparent so the 0.70 window glass shows through */
 .view,
 .standard-view,
 iconview,
@@ -58,77 +70,123 @@ treeview,
 textview,
 viewport,
 scrolledwindow,
-paned {
+paned,
+window.thunar .view,
+window.thunar iconview,
+window.thunar scrolledwindow {
     background-color: transparent;
-    color: @theme_fg_color;
+    color: @foreground;
     background-image: none;
 }
 
+/* Selection highlight */
 .view:selected,
 iconview:selected,
 row:selected,
-treeview:selected {
-    background-color: @theme_selected_bg_color;
-    color: @theme_selected_fg_color;
-    border-radius: 4px;
+treeview:selected,
+textview text:selected {
+    background-color: @color4;
+    color: @background;
+    border-radius: 6px;
 }
 
 /* ---------------------------------------------------------
-   5. HEADERBARS, TOOLBARS, MENUBARS & TITLEBARS
+   5. HEADERBARS, TOOLBARS & TITLEBARS
    --------------------------------------------------------- */
 headerbar,
 .titlebar,
 toolbar,
 menubar {
-    background-color: alpha(@theme_bg_color, 0.85);
+    background-color: transparent;
     background-image: none;
-    color: @theme_fg_color;
+    color: @foreground;
     box-shadow: none;
-    min-height: 0;
+    min-height: 38px;
+    border-bottom: 1px solid alpha(@foreground, 0.16);
 }
 
 menubar {
     border-bottom: none;
+    padding: 2px 4px;
 }
 
 toolbar {
-    border-bottom: 1px solid alpha(@color4, 0.5);
+    padding: 4px;
 }
 
-/* Buttons inside Headerbars/Toolbars */
+/* Headerbar & Toolbar Buttons */
 headerbar button,
-toolbar button {
-    background-color: transparent;
-    color: @theme_fg_color;
-    border: none;
+toolbar button,
+.titlebar button {
+    background-color: alpha(@color0, 0.40);
+    color: @foreground;
+    border: 1px solid alpha(@foreground, 0.16);
     box-shadow: none;
-    margin: 2px;
-    border-radius: 4px;
+    margin: 3px 2px;
+    padding: 4px 8px;
+    border-radius: 6px;
 }
 
 headerbar button:hover,
-toolbar button:hover {
+toolbar button:hover,
+.titlebar button:hover {
     background-color: @color4;
+    color: @background;
+    border-color: @color4;
+}
+
+/* ---------------------------------------------------------
+   6. THUNAR PATH BAR / LOCATION BAR (Breadcrumb Buttons)
+   --------------------------------------------------------- */
+.path-bar button,
+pathbar button,
+button.path-bar {
+    background-color: alpha(@color0, 0.40);
+    color: @foreground;
+    border: 1px solid alpha(@foreground, 0.16);
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin: 1px 2px;
+}
+
+.path-bar button:hover,
+pathbar button:hover {
+    background-color: @color4;
+    color: @background;
+    border-color: @color4;
+}
+
+.path-bar button:checked {
+    background-color: alpha(@color4, 0.85);
     color: @background;
 }
 
 /* ---------------------------------------------------------
-   6. SIDEBARS
+   7. SIDEBARS (Thunar Places / Devices / Stack Sidebars)
    --------------------------------------------------------- */
 .sidebar,
 stacksidebar,
 placessidebar,
-placessidebar list {
-    background-color: alpha(@color0, 0.5);
+placessidebar list,
+placessidebar .view {
+    background-color: alpha(@color0, 0.35);
     color: @foreground;
-    border-right: 1px solid alpha(@color4, 0.3);
+    border-right: 1px solid alpha(@foreground, 0.16);
 }
 
 .sidebar row,
 stacksidebar row,
 placessidebar row {
-    border-radius: 4px;
-    margin: 0 4px;
+    border-radius: 6px;
+    margin: 2px 4px;
+    padding: 4px 6px;
+}
+
+.sidebar row:hover,
+stacksidebar row:hover,
+placessidebar row:hover {
+    background-color: alpha(@foreground, 0.08);
+    color: @foreground;
 }
 
 .sidebar row:selected,
@@ -136,50 +194,37 @@ stacksidebar row:selected,
 placessidebar row:selected {
     background-color: @color4;
     color: @background;
-}
-
-.sidebar row:hover,
-stacksidebar row:hover,
-placessidebar row:hover {
-    background-color: alpha(@color4, 0.3);
-    color: @foreground;
+    font-weight: bold;
 }
 
 /* ---------------------------------------------------------
-   7. INPUTS & ENTRIES
+   8. INPUTS & SEARCH ENTRIES
    --------------------------------------------------------- */
 entry {
-    background-color: alpha(@color0, 0.5);
+    background-color: alpha(@color0, 0.40);
     color: @foreground;
-    border: 1px solid alpha(@color4, 0.5);
+    border: 1px solid alpha(@foreground, 0.16);
     caret-color: @foreground;
-    padding: 6px;
+    padding: 6px 10px;
     border-radius: 6px;
     box-shadow: none;
 }
 
 entry:focus {
-    background-color: alpha(@color0, 0.85);
-    box-shadow: inset 0 0 0 1px @color4;
+    background-color: alpha(@color0, 0.60);
     border-color: @color4;
-}
-
-entry:disabled {
-    background-color: alpha(@color0, 0.3);
-    color: alpha(@foreground, 0.5);
+    box-shadow: 0 0 0 1px alpha(@color4, 0.5);
 }
 
 /* ---------------------------------------------------------
-   8. BUTTONS
+   9. BUTTONS
    --------------------------------------------------------- */
 button {
-    background-color: alpha(@color0, 0.4);
+    background-color: alpha(@color0, 0.40);
     background-image: none;
     color: @foreground;
-    border: 1px solid alpha(@color4, 0.5);
-    box-shadow: none;
-    text-shadow: none;
-    padding: 4px 12px;
+    border: 1px solid alpha(@foreground, 0.16);
+    padding: 5px 14px;
     border-radius: 6px;
 }
 
@@ -191,115 +236,24 @@ button:hover {
 
 button:active,
 button:checked {
-    background-color: alpha(@color4, 0.8);
-    color: @background;
-}
-
-button:disabled {
-    background-color: transparent;
-    color: alpha(@foreground, 0.5);
-    border-color: alpha(@color4, 0.3);
-}
-
-button.suggested-action {
-    background-color: @color4;
-    color: @background;
-    border-color: @color4;
-}
-
-button.suggested-action:hover {
-    background-color: alpha(@color4, 0.8);
-}
-
-/* Fix for File Manager Columns (TreeView Headers) */
-treeview button.header {
-    background-color: transparent;
-    border: none;
-    border-bottom: 1px solid alpha(@color4, 0.3);
-    border-radius: 0;
-    padding: 2px 6px;
-}
-
-treeview button.header:hover {
-    background-color: alpha(@color4, 0.1);
-    color: @foreground;
-}
-
-/* ---------------------------------------------------------
-   9. COMBOBOXES (Dropdowns)
-   --------------------------------------------------------- */
-combobox button {
-    padding: 4px 10px;
-}
-
-combobox window.popup,
-combobox menu {
-    background-color: alpha(@color0, 0.95);
-    border: 1px solid alpha(@color4, 0.5);
-    border-radius: 6px;
-}
-
-/* ---------------------------------------------------------
-   10. CHECKBOXES & RADIO BUTTONS
-   --------------------------------------------------------- */
-checkbutton check,
-radiobutton radio {
-    background-color: alpha(@color0, 0.5);
-    border: 1px solid alpha(@color4, 0.6);
-    min-height: 14px;
-    min-width: 14px;
-}
-
-checkbutton check:checked,
-radiobutton radio:checked {
-    background-color: @color4;
+    background-color: alpha(@color4, 0.85);
     color: @background;
     border-color: @color4;
 }
 
 /* ---------------------------------------------------------
-   11. TABS (Notebooks)
-   --------------------------------------------------------- */
-notebook header {
-    background-color: alpha(@color0, 0.5);
-    border: none;
-}
-
-notebook header tab {
-    background-color: transparent;
-    color: @foreground;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 6px 6px 0 0;
-}
-
-notebook header tab:checked {
-    background-color: alpha(@color4, 0.2);
-    color: @foreground;
-    border-bottom: 2px solid @color4;
-    box-shadow: none;
-}
-
-notebook header tab:hover:not(:checked) {
-    background-color: alpha(@color4, 0.1);
-}
-
-notebook stack {
-    background-color: transparent;
-}
-
-/* ---------------------------------------------------------
-   12. MENUS & POPOVERS
+   10. MENUS & CONTEXT POPOVERS
    --------------------------------------------------------- */
 menu,
 .menu,
 popover,
 popover.background {
-    background-color: alpha(@color0, 0.95);
+    background-color: alpha(@background, 0.85);
     color: @foreground;
-    border: 1px solid alpha(@color4, 0.5);
-    border-radius: 8px;
-    box-shadow: 0px 4px 12px alpha(#000000, 0.3);
+    border: 1px solid alpha(@foreground, 0.16);
+    border-radius: 10px;
+    padding: 4px;
+    box-shadow: 0 8px 24px alpha(#000000, 0.35);
 }
 
 menu item,
@@ -307,13 +261,11 @@ menu item,
 popover modelbutton,
 popover button {
     background-color: transparent;
-    background-image: none;
     color: @foreground;
     border: none;
-    box-shadow: none;
-    padding: 6px 8px;
-    border-radius: 4px;
-    margin: 2px 4px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    margin: 1px 2px;
 }
 
 menu item:hover,
@@ -326,12 +278,13 @@ popover button:hover {
 
 menu separator,
 popover separator {
-    background-color: alpha(@color4, 0.2);
-    margin: 4px 0;
+    background-color: alpha(@foreground, 0.12);
+    min-height: 1px;
+    margin: 4px 6px;
 }
 
 /* ---------------------------------------------------------
-   13. SCROLLBARS & SLIDERS
+   11. SLIDERS, SCALES & AUDIO METERS (EasyEffects / Pavucontrol)
    --------------------------------------------------------- */
 scrollbar,
 scrollbar trough {
@@ -339,7 +292,7 @@ scrollbar trough {
 }
 
 scrollbar slider {
-    background-color: alpha(@color8, 0.4);
+    background-color: alpha(@foreground, 0.20);
     min-width: 6px;
     min-height: 6px;
     border-radius: 10px;
@@ -350,293 +303,93 @@ scrollbar slider:hover {
     background-color: @color4;
 }
 
-/* SCALES (Volume/Brightness Sliders) */
 scale trough {
-    background-color: alpha(@color0, 0.6);
-    border-radius: 10px;
+    background-color: alpha(@color0, 0.40);
+    border-radius: 8px;
+    min-height: 8px;
 }
 
 scale highlight {
     background-color: @color4;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 
 scale slider {
     background-color: @foreground;
     border-radius: 50%;
-    box-shadow: none;
+    min-width: 16px;
+    min-height: 16px;
+    margin: -4px;
 }
 
-/* ---------------------------------------------------------
-   14. MISC WIDGETS
-   --------------------------------------------------------- */
-/* Switches */
-switch {
-    background-color: alpha(@color0, 0.6);
-    border: 1px solid alpha(@color4, 0.5);
-    border-radius: 14px;
-}
-
-switch:checked {
-    background-color: @color4;
-    color: @background;
-}
-
-switch slider {
-    background-color: @foreground;
-    border-radius: 50%;
-}
-
-/* Progressbars */
-progressbar trough {
-    background-color: alpha(@color0, 0.6);
-    border: none;
+levelbar trough {
+    background-color: alpha(@color0, 0.40);
     border-radius: 4px;
+    min-height: 6px;
 }
 
-progressbar progress {
+levelbar block.filled {
     background-color: @color4;
     border-radius: 4px;
 }
 
-/* Spinbuttons (Number inputs) */
-spinbutton {
-    background-color: transparent;
-}
-
-spinbutton button {
-    background-color: transparent;
-    color: @foreground;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-}
-
-/* Tooltips */
-tooltip,
-tooltip.background {
-    background-color: alpha(@color0, 0.95);
-    color: @foreground;
-    border: 1px solid alpha(@color4, 0.5);
-    border-radius: 6px;
-    padding: 4px 8px;
-}
-
 /* ---------------------------------------------------------
-   15. OVERRIDES (Kill Ugly GTK3 Defaults)
+   12. SWITCHES & CHECKBOXES
    --------------------------------------------------------- */
-/* Remove the black shadow gradient when scrolling past edges */
-overshoot,
-undershoot {
-    background: none;
-    background-image: none;
-    box-shadow: none;
-}
-
-/* ---------------------------------------------------------
-   16. DIALOGS & INFOBARS
-   --------------------------------------------------------- */
-dialog,
-messagedialog,
-filechooser {
-    background-color: alpha(@color0, 0.95);
-    color: @foreground;
-    border-radius: 8px;
-}
-
-dialog headerbar,
-messagedialog headerbar {
-    background-color: transparent;
-    border-bottom: 1px solid alpha(@color4, 0.3);
-}
-
-infobar,
-.info,
-infobar box,
-.info box,
-infobar action-area {
-    background-color: transparent;
-    background-image: none;
-    color: @foreground;
-    border: none;
-    box-shadow: none;
-}
-
-infobar {
-    border-top: 1px solid alpha(@color4, 0.3);
-}
-
-infobar label,
-.info label {
-    color: @foreground;
-}
-
-infobar button,
-.info button {
-    background-color: alpha(@color0, 0.4);
-    background-image: none;
-    color: @foreground;
-    border: 1px solid alpha(@color4, 0.5);
-    border-radius: 6px;
-    padding: 4px 12px;
-    margin: 4px 2px;
-    box-shadow: none;
-}
-
-infobar button:hover,
-.info button:hover {
-    background-color: @color4;
-    color: @background;
-    border-color: @color4;
-}
-
-/* ---------------------------------------------------------
-   17. BACKDROP FIXES (Unfocused Windows)
-   --------------------------------------------------------- */
-window:backdrop,
-.thunar:backdrop {
-    background-color: alpha(@theme_bg_color, 0.85);
-    color: @theme_fg_color;
-}
-
-headerbar:backdrop,
-toolbar:backdrop,
-.titlebar:backdrop {
-    background-color: alpha(@theme_bg_color, 0.85);
-    background-image: none;
-    color: @theme_fg_color;
-    box-shadow: none;
-    border-bottom: 1px solid alpha(@color4, 0.5);
-}
-
-menubar:backdrop,
-notebook header:backdrop {
-    background-color: transparent;
-    background-image: none;
-    border: none;
-    box-shadow: none;
-}
-
-statusbar:backdrop,
-.statusbar:backdrop {
-    background-color: transparent;
-    color: @theme_fg_color;
-}
-
-entry:backdrop,
-button:backdrop {
-    color: @foreground;
-    border-color: alpha(@color4, 0.5);
-}
-
-rubberband,
-.content-view rubberband {
-    background-color: alpha(@color4, 0.2);
-    border: 1px solid @color4;
-}
-
-/* ---------------------------------------------------------
-   LISTBOXES (Settings Cards)
-   --------------------------------------------------------- */
-list {
-    background-color: transparent;
-}
-
-listbox {
-    background-color: alpha(@foreground, 0.05);
-    /* Subtle tint */
-    border: 1px solid alpha(@foreground, 0.2);
-    border-radius: 8px;
-    background-image: none;
-}
-
-listbox row {
-    background-color: transparent;
-    border: none;
-}
-
-listbox row:hover {
-    background-color: alpha(@color4, 0.2);
-    color: @foreground;
-}
-
-listbox row:selected {
-    background-color: @color4;
-
-    color: @background;
-}
-
-/* ---------------------------------------------------------
-   9. COMBOBOXES (Dropdowns)
-   --------------------------------------------------------- */
-combobox button,
-combobox button.combo {
-    background-color: alpha(@color0, 0.4);
-    background-image: none;
-    border: 1px solid alpha(@color4, 0.5);
-    border-radius: 6px;
-    color: @foreground;
-    padding: 4px 10px;
-}
-
-combobox cellview,
-combobox label {
-    color: @foreground;
-}
-
-/* Fix for disabled dropdowns like "GL Rendering -> When needed" */
-combobox button:disabled,
-combobox button:disabled cellview,
-combobox button:disabled label {
-    color: alpha(@foreground, 0.3);
-    background-color: transparent;
-    border-color: alpha(@color4, 0.2);
-}
-
-combobox window.popup,
-combobox menu {
-    background-color: alpha(@color0, 0.95);
-    border: 1px solid alpha(@color4, 0.5);
-    border-radius: 6px;
-}
-
-/* Switches */
 switch {
-    background-color: alpha(@foreground, 0.1);
-    background-image: none;
-    border: 1px solid alpha(@foreground, 0.3);
+    background-color: alpha(@color0, 0.40);
+    border: 1px solid alpha(@foreground, 0.16);
     border-radius: 14px;
-}
-
-switch slider {
-    background-color: alpha(@foreground, 0.6);
-    background-image: none;
-    border: none;
-    border-radius: 50%;
-    box-shadow: none;
+    min-width: 44px;
+    min-height: 22px;
 }
 
 switch:checked {
     background-color: @color4;
     border-color: @color4;
+}
+
+switch slider {
+    background-color: alpha(@foreground, 0.85);
+    border-radius: 50%;
+    min-width: 18px;
+    min-height: 18px;
+    margin: 2px;
 }
 
 switch:checked slider {
     background-color: @background;
 }
 
-/* 24. KILL SUSHI / HEADERBAR FLOATING FOCUS RINGS (High Specificity) */
-window.background headerbar.titlebar button.text-button:focus,
-window.background headerbar.titlebar button.text-button:focus-visible,
-window headerbar button:focus,
-window headerbar button:focus-visible {
-    /* Kill the floating outline entirely */
-    outline-style: none;
-    outline-width: 0;
-    outline-color: transparent;
-    outline-offset: 0;
-    box-shadow: none;
+checkbutton check,
+radiobutton radio {
+    background-color: alpha(@color0, 0.40);
+    border: 1px solid alpha(@foreground, 0.20);
+    min-height: 16px;
+    min-width: 16px;
+    border-radius: 4px;
+}
 
-    /* Make the actual button border glow teal instead */
-    border: none;
+checkbutton check:checked,
+radiobutton radio:checked {
+    background-color: @color4;
+    color: @background;
+    border-color: @color4;
+}
+
+/* ---------------------------------------------------------
+   13. STATUSBARS & OVERSHOOT CLEANUP
+   --------------------------------------------------------- */
+statusbar,
+.statusbar {
+    background-color: transparent;
+    color: @color8;
+    border-top: 1px solid alpha(@foreground, 0.16);
+    padding: 2px 6px;
+}
+
+overshoot,
+undershoot {
+    background: none;
+    box-shadow: none;
 }

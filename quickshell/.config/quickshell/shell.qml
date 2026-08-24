@@ -1,4 +1,5 @@
 //@ pragma UseQApplication
+//@ pragma IconTheme Papirus-Dark
 import "./components"
 
 import QtQuick

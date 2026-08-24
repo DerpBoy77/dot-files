@@ -27,6 +27,7 @@ hl.on("hyprland.start", function()
     "systemctl --user start hyprpolkitagent",
     "udiskie",
     "[workspace special:magic silent] thunar",
+    "sleep 2 && easyeffects --service-mode -w",
   }
 
   for _, cmd in ipairs(autostart_cmds) do
@@ -83,6 +84,7 @@ hl.config({
       new_optimizations = true,
       ignore_opacity    = true,
       xray              = false,
+      popups            = true,
     },
 
     border_part_of_window = false

@@ -1,26 +1,71 @@
 /* ==========================================================================
    GTK4 / LIBADWAITA THEME OVERRIDE
-   Matches transparent Kitty terminal & Wallust dynamic colors
+   Matches Kitty 0.70 transparency & Quickshell Dynamic Island Glass
    ========================================================================== */
 
-/* 1. Import your Wallust colors */
+/* 1. Import compiled Wallust palette from cache */
 @import url("../../.cache/wallust/colors-waybar.css");
 
-/* 2. Map Core Variables and MATCH KITTY'S TRANSPARENCY */
+/* 2. Libadwaita Core System Variables */
 @define-color accent_color @color4;
 @define-color accent_bg_color @color4;
+@define-color accent_fg_color @background;
 
-/* Matched exactly to Kitty's background_opacity 0.8 */
-@define-color window_bg_color alpha(@background, 0.8);
+/* Locked to Kitty's 0.70 background transparency */
+@define-color window_bg_color alpha(@background, 0.70);
+@define-color window_fg_color @foreground;
 
-/* 3. MAIN WINDOW (Matches Kitty Font and Background) */
+@define-color view_bg_color transparent;
+@define-color view_fg_color @foreground;
+
+@define-color headerbar_bg_color transparent;
+@define-color headerbar_fg_color @foreground;
+@define-color headerbar_border_color alpha(@foreground, 0.16);
+
+@define-color card_bg_color alpha(@color0, 0.40);
+@define-color card_fg_color @foreground;
+@define-color card_border_color alpha(@foreground, 0.16);
+
+@define-color popover_bg_color alpha(@background, 0.85);
+@define-color popover_fg_color @foreground;
+
+@define-color destructive_color @color1;
+@define-color destructive_bg_color @color1;
+@define-color destructive_fg_color @foreground;
+
+@define-color success_color @color2;
+@define-color warning_color @color3;
+
+/* ---------------------------------------------------------
+   3. GLOBAL TRANSITIONS & TYPOGRAPHY
+   --------------------------------------------------------- */
 window {
     background-color: @window_bg_color;
-    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    color: @window_fg_color;
+    font-family: "JetBrainsMono Nerd Font Propo", "JetBrains Mono", monospace;
     font-size: 11pt;
 }
 
-/* 4. STRIP ALL WHITE BOXES */
+button,
+entry,
+row,
+tab,
+menuitem,
+switch,
+switch slider,
+scrollbar slider,
+scale highlight {
+    transition: all 0.14s cubic-bezier(0, 0, 0.2, 1);
+}
+
+*:focus {
+    outline: 2px solid alpha(@color4, 0.6);
+    outline-offset: -2px;
+}
+
+/* ---------------------------------------------------------
+   4. STRIP STRUCTURAL WHITE BOXES (Transparent Views)
+   --------------------------------------------------------- */
 headerbar,
 .titlebar,
 notebook header,
@@ -36,13 +81,14 @@ paned,
 view,
 treeview,
 listview,
-box,
 grid,
 frame,
 revealer,
 overlay,
 flowbox,
 flowboxchild,
+adw-split-view,
+leaflet,
 .expander-widget {
     background: transparent;
     background-color: transparent;
@@ -50,303 +96,318 @@ flowboxchild,
     color: @foreground;
 }
 
-/* 4.5. FIX THE GREY COLUMN HEADERS */
+/* ColumnView Headers (File Pickers & Tables) */
 columnview>listview>button,
 columnview button {
     background-color: transparent;
     background-image: none;
     border: none;
-    border-bottom: 1px solid alpha(@foreground, 0.2);
+    border-bottom: 1px solid alpha(@foreground, 0.16);
     border-radius: 0;
+    color: @color8;
 }
 
-/* 5. MATCH TERMINAL UI (Fixed White Buttons & Dropdowns) */
+columnview>listview>button:hover,
+columnview button:hover {
+    background-color: alpha(@foreground, 0.06);
+    color: @foreground;
+}
+
+/* ---------------------------------------------------------
+   5. HEADERBARS & TOOLBARS
+   --------------------------------------------------------- */
+headerbar,
+.titlebar,
+toolbar,
+tabbar {
+    background-color: transparent;
+    background-image: none;
+    border-bottom: 1px solid alpha(@foreground, 0.16);
+    box-shadow: none;
+}
+
+headerbar button,
+.titlebar button,
+toolbar button {
+    background-color: alpha(@color0, 0.40);
+    border: 1px solid alpha(@foreground, 0.16);
+    border-radius: 6px;
+    color: @foreground;
+    padding: 4px 8px;
+    margin: 2px;
+}
+
+headerbar button:hover,
+.titlebar button:hover,
+toolbar button:hover {
+    background-color: @color4;
+    color: @background;
+    border-color: @color4;
+}
+
+/* Headerbar Flat & Window Controls */
+headerbar button.flat,
+.titlebar button.flat {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+headerbar button.flat:hover,
+.titlebar button.flat:hover {
+    background-color: @color4;
+    color: @background;
+    border-color: @color4;
+}
+
+/* ---------------------------------------------------------
+   6. BUTTONS & CONTROLS
+   --------------------------------------------------------- */
 button,
-menubutton,
-dropdown {
-    background-color: alpha(@foreground, 0.1);
+menubutton>button,
+dropdown>button {
+    background-color: alpha(@color0, 0.40);
     background-image: none;
     color: @foreground;
-    /* Kills the white Adwaita boxes */
-    border: 1px solid alpha(@foreground, 0.2);
+    border: 1px solid alpha(@foreground, 0.16);
     border-radius: 6px;
-    font-family: inherit;
+    padding: 5px 14px;
     box-shadow: none;
 }
 
 button:hover,
-menubutton:hover,
-dropdown:hover {
-    background-color: alpha(@foreground, 0.2);
+menubutton>button:hover,
+dropdown>button:hover {
+    background-color: @color4;
+    color: @background;
+    border-color: @color4;
+}
+
+button:active,
+button:checked {
+    background-color: alpha(@color4, 0.85);
+    color: @background;
+    border-color: @color4;
 }
 
 button.suggested-action {
     background-color: @accent_bg_color;
-    background-image: none;
     color: @background;
-    border: none;
+    border-color: @accent_bg_color;
+    font-weight: bold;
+}
+
+button.suggested-action:hover {
+    background-color: alpha(@color4, 0.85);
 }
 
 button.destructive-action {
-    background-color: alpha(@color1, 0.8);
-    background-image: none;
+    background-color: alpha(@color1, 0.80);
     color: @foreground;
-    border: none;
+    border-color: @color1;
 }
 
-/* 6. SEARCH BARS & INPUTS */
+button.destructive-action:hover {
+    background-color: @color1;
+}
+
+/* ---------------------------------------------------------
+   7. INPUTS & SEARCH ENTRIES
+   --------------------------------------------------------- */
 entry,
-searchentry {
-    background-color: alpha(@foreground, 0.1);
+searchentry,
+passwordentry {
+    background-color: alpha(@color0, 0.40);
     background-image: none;
     color: @foreground;
-    border: 1px solid alpha(@foreground, 0.2);
+    border: 1px solid alpha(@foreground, 0.16);
     border-radius: 6px;
-    font-family: inherit;
+    padding: 6px 10px;
     box-shadow: none;
+    caret-color: @foreground;
 }
 
 entry:focus,
-searchentry:focus {
+searchentry:focus,
+passwordentry:focus {
+    background-color: alpha(@color0, 0.60);
     border-color: @color4;
-    box-shadow: inset 0 0 0 1px @color4;
+    box-shadow: 0 0 0 1px alpha(@color4, 0.5);
 }
 
-/* 7. CHECKBOXES */
-checkbutton check {
-    background-color: alpha(@foreground, 0.1);
-    background-image: none;
-    border: 1px solid alpha(@foreground, 0.4);
-    border-radius: 4px;
+/* ---------------------------------------------------------
+   8. BOXED LISTS & CARDS (Libadwaita Settings & GNOME Apps)
+   --------------------------------------------------------- */
+listbox,
+.boxed-list {
+    background: transparent;
+    background-color: alpha(@color0, 0.40);
+    border: 1px solid alpha(@foreground, 0.16);
+    border-radius: 10px;
+    box-shadow: none;
+    padding: 2px;
 }
 
-checkbutton check:checked {
-    background-color: @accent_bg_color;
-    color: @background;
-}
-
-/* 8. LIST ROWS */
+listbox>row,
+.boxed-list>row,
 row {
+    background: transparent;
     color: @foreground;
+    border-radius: 6px;
+    margin: 1px;
+    padding: 8px 10px;
 }
 
 row:hover {
-    background-color: alpha(@color4, 0.25);
+    background-color: alpha(@foreground, 0.08);
+    color: @foreground;
 }
 
 row:selected,
 row:selected:focus {
-    background-color: alpha(@color4, 0.45);
-    color: @foreground;
+    background-color: @color4;
+    color: @background;
+    font-weight: bold;
 }
 
-/* 9. NOTEBOOK TABS */
-notebook>header>tabs>tab {
+/* ---------------------------------------------------------
+   9. POPOVERS, MENUS & DROPDOWNS
+   --------------------------------------------------------- */
+window popover>contents,
+window popover>arrow {
+    background-color: alpha(@background, 0.85);
+    background-image: none;
+    border: 1px solid alpha(@foreground, 0.16);
+    border-radius: 10px;
+    color: @foreground;
+    padding: 4px;
+    box-shadow: 0 8px 24px alpha(#000000, 0.35);
+}
+
+/* Strip inner viewport backgrounds in popovers */
+window popover contents listview,
+window popover contents listbox,
+window popover contents list,
+window popover contents scrolledwindow,
+window popover contents viewport,
+window popover contents .view,
+window popover contents box,
+window popover contents row {
+    background: transparent;
     background-color: transparent;
-    color: alpha(@foreground, 0.55);
+}
+
+/* Menu Row & Button Hover States */
+window popover.menu contents button,
+window popover.menu contents modelbutton,
+window popover contents row {
+    background: transparent;
     border: none;
-    padding: 6px 12px;
-    font-family: inherit;
-}
-
-notebook>header>tabs>tab:checked {
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin: 1px 2px;
     color: @foreground;
-    border-bottom: 2px solid @color4;
-    background-color: transparent;
 }
 
-/* 10. SCROLLBARS */
+window popover.menu contents button:hover,
+window popover.menu contents button:focus,
+window popover.menu contents modelbutton:hover,
+window popover.menu contents modelbutton:focus,
+window popover contents row:hover {
+    background-color: @color4;
+    color: @background;
+}
+
+/* ---------------------------------------------------------
+   10. TABS & NOTEBOOKS
+   --------------------------------------------------------- */
+notebook>header>tabs>tab,
+tabbar tab {
+    background-color: transparent;
+    color: alpha(@foreground, 0.60);
+    border: none;
+    padding: 6px 14px;
+    font-weight: 500;
+}
+
+notebook>header>tabs>tab:checked,
+tabbar tab:checked {
+    color: @foreground;
+    background-color: alpha(@color4, 0.15);
+    border-bottom: 2px solid @color4;
+}
+
+notebook>header>tabs>tab:hover:not(:checked),
+tabbar tab:hover:not(:checked) {
+    background-color: alpha(@foreground, 0.06);
+    color: @foreground;
+}
+
+/* ---------------------------------------------------------
+   11. SCROLLBARS, SLIDERS & PROGRESS
+   --------------------------------------------------------- */
 scrollbar {
     background-color: transparent;
 }
 
 scrollbar trough {
-    background-color: alpha(@foreground, 0.1);
-    border-radius: 10px;
+    background-color: transparent;
 }
 
 scrollbar slider {
-    background-color: alpha(@color4, 0.45);
+    background-color: alpha(@foreground, 0.20);
     border-radius: 10px;
     min-width: 6px;
     min-height: 6px;
+    margin: 2px;
 }
 
 scrollbar slider:hover {
-    background-color: alpha(@color4, 0.75);
+    background-color: @color4;
 }
 
-/* 11. SEPARATORS */
-separator {
-    background-color: alpha(@color4, 0.2);
-    min-height: 1px;
-    min-width: 1px;
-}
-
-/* 12. POPOVERS & DROPDOWN MENUS */
-window popover>contents,
-window popover>arrow {
-    background-color: alpha(@background, 0.95);
-    background-image: none;
-    border: 1px solid alpha(@color4, 0.3);
+/* Volume / Brightness Scales */
+scale trough {
+    background-color: alpha(@color0, 0.40);
     border-radius: 8px;
-    color: @foreground;
+    min-height: 8px;
 }
 
-/* Nuke backgrounds from lists, views, and boxes inside popovers */
-window popover contents listview,
-window popover contents listbox,
-window popover contents list,
-window popover contents treeview,
-window popover contents scrolledwindow,
-window popover contents viewport,
-window popover contents .view,
-window popover contents view,
-window popover contents box,
-window popover contents cell,
-window popover contents row {
-    background: transparent;
-    background-color: transparent;
-    background-image: none;
-    box-shadow: none;
-}
-
-/* Explicitly kill Libadwaita's alternating zebra stripe classes */
-window popover contents row.striped,
-window popover contents row:nth-child(even),
-window popover contents row:nth-child(odd) {
-    background: transparent;
-    background-color: transparent;
-    background-image: none;
-}
-
-/* Force text to be bright */
-window popover contents label,
-window popover contents text,
-window popover contents label:disabled {
-    color: @foreground;
-}
-
-window popover contents label.title {
-    font-weight: bold;
-}
-
-/* Ensure unhovered menu buttons stay transparent instead of looking like regular buttons */
-window popover.menu contents button,
-window popover.menu contents modelbutton {
-    background: transparent;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
-}
-
-/* Smooth hover effect for menu items (Fixes the solid white hover box) */
-window popover.menu contents button:hover,
-window popover.menu contents button:focus,
-window popover.menu contents modelbutton:hover,
-window popover.menu contents modelbutton:focus,
-window popover contents row:hover,
-window popover contents cell:hover,
-window menu row:hover,
-window menu button:hover {
-    background-color: alpha(@color4, 0.3);
-    color: @foreground;
-    border-radius: 6px;
-}
-
-/* Kill borders and separator lines in popovers */
-window popover contents listbox>row,
-window popover contents listview>row,
-window popover contents row {
-    border: none;
-}
-
-window popover contents listbox separator,
-window popover contents listview separator,
-window popover contents box>separator {
-    background: transparent;
-    background-color: transparent;
-    min-height: 0;
-}
-
-/* 13. LINKS */
-label a,
-a {
-    color: @color4;
-}
-
-/* 14. SIDEBARS & NAVIGATION */
-stacksidebar,
-.navigation-sidebar,
-.sidebar,
-list {
-    background: transparent;
-    background-color: transparent;
-    background-image: none;
-}
-
-stacksidebar button,
-.navigation-sidebar button,
-button.image-button,
-button.flat,
-stacksidebar menubutton,
-.navigation-sidebar menubutton,
-menubutton.image-button,
-menubutton.flat {
-    background-color: transparent;
-    background-image: none;
-    border: none;
-    box-shadow: none;
+scale highlight {
+    background-color: @accent_bg_color;
     border-radius: 8px;
 }
 
-stacksidebar button:hover,
-.navigation-sidebar button:hover,
-button.image-button:hover,
-button.flat:hover,
-stacksidebar menubutton:hover,
-.navigation-sidebar menubutton:hover,
-menubutton.image-button:hover,
-menubutton.flat:hover {
-    background-color: alpha(@foreground, 0.1);
-}
-
-stacksidebar button:checked,
-.navigation-sidebar button:checked,
-stacksidebar menubutton:checked,
-.navigation-sidebar menubutton:checked {
-    background-color: alpha(@color4, 0.2);
-}
-
-/* 15. BOXED LISTS (Settings "Cards") */
-listbox,
-.boxed-list {
-    background: transparent;
-    background-color: alpha(@foreground, 0.05);
-    /* Subtle tint */
-    border: 1px solid alpha(@foreground, 0.2);
-    border-radius: 8px;
-    box-shadow: none;
-}
-
-listbox>row,
-.boxed-list>row {
-    background: transparent;
-    background-color: transparent;
-}
-
-/* 16. SWITCHES (Toggle Sliders) */
-switch {
-    background-color: alpha(@foreground, 0.1);
-    border: 1px solid alpha(@foreground, 0.2);
-    border-radius: 14px;
-}
-
-switch slider {
-    background-color: alpha(@foreground, 0.6);
+scale slider {
+    background-color: @foreground;
     border-radius: 50%;
-    border: none;
+    min-width: 16px;
+    min-height: 16px;
+    margin: -4px;
     box-shadow: none;
+    border: none;
+}
+
+/* Progressbars */
+progressbar trough {
+    background-color: alpha(@color0, 0.40);
+    border-radius: 4px;
+    min-height: 6px;
+}
+
+progressbar progress {
+    background-color: @accent_bg_color;
+    border-radius: 4px;
+}
+
+/* ---------------------------------------------------------
+   12. SWITCHES, CHECKBOXES & RADIOS
+   --------------------------------------------------------- */
+switch {
+    background-color: alpha(@color0, 0.40);
+    border: 1px solid alpha(@foreground, 0.16);
+    border-radius: 14px;
+    min-width: 44px;
+    min-height: 22px;
 }
 
 switch:checked {
@@ -354,110 +415,81 @@ switch:checked {
     border-color: @accent_bg_color;
 }
 
+switch slider {
+    background-color: alpha(@foreground, 0.85);
+    border-radius: 50%;
+    min-width: 18px;
+    min-height: 18px;
+    margin: 2px;
+}
+
 switch:checked slider {
     background-color: @background;
 }
 
-/* 17. SCALES (Volume/Brightness Sliders) */
-scale trough {
-    background-color: alpha(@foreground, 0.1);
-    border-radius: 10px;
+/* Checkbuttons & Radios */
+checkbutton check {
+    background-color: alpha(@color0, 0.40);
+    border: 1px solid alpha(@foreground, 0.20);
+    border-radius: 4px;
+    min-height: 16px;
+    min-width: 16px;
 }
 
-scale highlight {
-    background-color: @accent_bg_color;
-    border-radius: 10px;
-}
-
-scale slider {
-    background-color: @accent_bg_color;
-    border-radius: 50%;
-    box-shadow: none;
-    border: none;
-}
-
-/* 18. TOOLTIPS */
-tooltip {
-    background-color: alpha(@background, 0.95);
-    border: 1px solid alpha(@color4, 0.3);
-    border-radius: 8px;
-    color: @foreground;
-    text-shadow: none;
-}
-
-/* 19. MULTI-LINE TEXT AREAS */
-textview {
-    background-color: alpha(@foreground, 0.05);
-    border: 1px solid alpha(@foreground, 0.2);
-    border-radius: 6px;
-}
-
-textview text {
-    background-color: transparent;
-    color: @foreground;
-}
-
-/* 20. DIALOGS & POPUPS */
-window.dialog,
-window.popup,
-messagedialog,
-messagedialog .dialog-vbox {
-    background-color: @window_bg_color;
-    background-image: none;
-}
-
-/* 21. TOAST NOTIFICATIONS */
-toast {
-    background-color: alpha(@background, 0.9);
-    border: 1px solid alpha(@color4, 0.5);
-    color: @foreground;
-    border-radius: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* 22. RADIO BUTTONS */
 checkbutton radio {
-    background-color: alpha(@foreground, 0.1);
-    background-image: none;
-    border: 1px solid alpha(@foreground, 0.4);
+    background-color: alpha(@color0, 0.40);
+    border: 1px solid alpha(@foreground, 0.20);
     border-radius: 50%;
+    min-height: 16px;
+    min-width: 16px;
 }
 
+checkbutton check:checked,
 checkbutton radio:checked {
     background-color: @accent_bg_color;
     color: @background;
+    border-color: @accent_bg_color;
 }
 
-/* 23. PROGRESS BARS */
-progressbar trough {
-    background-color: alpha(@foreground, 0.1);
-    border-radius: 10px;
-}
-
-progressbar progress {
-    background-color: @accent_bg_color;
-    border-radius: 10px;
-}
-
-/* 24. SPIN BUTTONS (Number Inputs) */
-spinbutton {
-    background-color: alpha(@foreground, 0.1);
-    border: 1px solid alpha(@foreground, 0.2);
-    border-radius: 6px;
-    box-shadow: none;
-}
-
-spinbutton text {
-    background-color: transparent;
+/* ---------------------------------------------------------
+   13. DIALOGS, TOASTS & TOOLTIPS
+   --------------------------------------------------------- */
+window.dialog,
+window.popup,
+messagedialog,
+adw-window.dialog {
+    background-color: alpha(@background, 0.85);
     color: @foreground;
+    border-radius: 12px;
+    border: 1px solid alpha(@foreground, 0.16);
 }
 
-spinbutton button {
-    background-color: transparent;
-    border: none;
-    border-radius: 0;
+toast {
+    background-color: alpha(@background, 0.90);
+    border: 1px solid alpha(@foreground, 0.16);
+    color: @foreground;
+    border-radius: 12px;
+    padding: 6px 16px;
+    box-shadow: 0 4px 16px alpha(#000000, 0.35);
 }
 
-spinbutton button:hover {
-    background-color: alpha(@foreground, 0.1);
+tooltip {
+    background-color: alpha(@background, 0.90);
+    border: 1px solid alpha(@foreground, 0.16);
+    border-radius: 6px;
+    color: @foreground;
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+separator {
+    background-color: alpha(@foreground, 0.12);
+    min-height: 1px;
+    min-width: 1px;
+}
+
+/* Links */
+label a,
+a {
+    color: @color4;
 }
