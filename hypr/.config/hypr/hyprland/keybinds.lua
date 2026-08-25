@@ -1,7 +1,7 @@
 local terminal    = "kitty"
 local fileManager = "thunar"
 local menu        = "rofi -show drun"
-local calculator  = "rofi -show calc -modi calc"
+local calculator  = "pkill -x rofi || rofi -show calc -modi calc -no-show-match -no-sort"
 
 
 

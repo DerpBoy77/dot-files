@@ -1,6 +1,6 @@
 /* ==========================================================================
    GTK3 THEME OVERRIDE
-   Matches Kitty 0.70 transparency & Quickshell Dynamic Island Glass
+   Matches Hyprland rounding = 10 & 0.70 Kitty Glass Transparency
    ========================================================================== */
 
 /* 1. Import compiled Wallust palette from cache */
@@ -40,7 +40,7 @@ scale highlight {
 }
 
 /* ---------------------------------------------------------
-   4. CORE WINDOW & THUNAR CONTAINER (0.70 Kitty Transparency)
+   4. CORE WINDOW & THUNAR CONTAINER (Synced to Hyprland 10px)
    --------------------------------------------------------- */
 window,
 window.background,
@@ -48,7 +48,7 @@ window.thunar,
 .thunar {
     background-color: alpha(@background, 0.70);
     color: @foreground;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 window:backdrop,
@@ -252,6 +252,7 @@ popover.background {
     color: @foreground;
     border: 1px solid alpha(@foreground, 0.16);
     border-radius: 10px;
+    /* Matching 10px radius */
     padding: 4px;
     box-shadow: 0 8px 24px alpha(#000000, 0.35);
 }

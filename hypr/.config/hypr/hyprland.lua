@@ -234,6 +234,15 @@ hl.layer_rule({
   }
 })
 
+hl.layer_rule({
+  name = "wlogout",
+  blur = true,
+  ignore_alpha = 0.5,
+  match = {
+    namespace = "logout_dialog"
+  }
+})
+
 hl.workspace_rule({
   workspace = "5",
   layout = "scrolling",

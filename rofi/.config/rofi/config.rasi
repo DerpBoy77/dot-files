@@ -1,25 +1,23 @@
-
 configuration {
     modi: "drun,run,window,filebrowser";
     show-icons: true;
     icon-theme: "Papirus-Dark";
-    display-drun: " Apps";
-    display-run: " Run";
-    display-window: " Windows";
-    display-filebrowser: " Files";
+    display-drun: "󰍉 Apps";
+    display-run: "󰌌 Run";
+    display-window: "󰖲 Windows";
+    display-filebrowser: "󰉋 Files";
     drun-display-format: "{name}";
     window-format: "{w} · {c} · {t}";
-    font: "JetBrainsMono Nerd Font 12";
+    font: "JetBrainsMono Nerd Font Propo 11";
 }
 
-/* Import Pywal colors */
+/* Import Wallust colors */
 @import "~/.cache/wallust/colors-rofi.rasi"
 
 * {
     /* Global Defaults */
     background-color: transparent;
     text-color: @foreground;
-    
     margin: 0;
     padding: 0;
     spacing: 0;
@@ -27,54 +25,62 @@ configuration {
 
 window {
     width: 600px;
-    /* Using Pywal background */
     background-color: @background;
-    border: 2px solid;
-    /* Using Pywal accent color for border */
-    border-color: @color9;
+    border: 1px solid;
+    border-color: @color0;
     border-radius: 16px;
-    padding: 20px;
+    padding: 16px;
 }
 
 mainbox {
     background-color: transparent;
+    spacing: 12px;
     children: [inputbar, message, listview];
 }
 
+/* ---------------------------------------------------------
+   SEARCH INPUT BAR (Translucent Card Style)
+   --------------------------------------------------------- */
 inputbar {
-    background-color: @color8;
-    text-color: @background; /* FIXED: Dark text */
+    background-color: @color0;
+    text-color: @foreground;
     border-radius: 12px;
-    padding: 12px 16px;
-    margin: 0 0 16px 0;
+    padding: 10px 14px;
+    spacing: 10px;
     children: [prompt, entry];
 }
 
 prompt {
     background-color: transparent;
-    text-color: @background; /* FIXED: Dark text */
-    margin: 0 12px 0 0;
+    text-color: @color4;
 }
 
 entry {
     background-color: transparent;
-    text-color: @background; /* FIXED: Dark text */
+    text-color: @foreground;
     placeholder: "Search...";
-    placeholder-color: @color0; /* FIXED: Darker placeholder */
+    placeholder-color: @color8;
 }
 
+/* ---------------------------------------------------------
+   MESSAGE BOX
+   --------------------------------------------------------- */
 message {
-    background-color: @color8;
+    background-color: @color0;
+    border: 1px solid;
+    border-color: @color4;
     border-radius: 12px;
-    padding: 12px;
-    margin: 0 0 16px 0;
+    padding: 10px 14px;
 }
 
 textbox {
     background-color: transparent;
-    text-color: @foreground;
+    text-color: @color4;
 }
 
+/* ---------------------------------------------------------
+   LISTVIEW (Fixed 8 Lines)
+   --------------------------------------------------------- */
 listview {
     background-color: transparent;
     columns: 1;
@@ -86,8 +92,9 @@ listview {
 
 element {
     background-color: transparent;
-    padding: 10px 14px;
-    border-radius: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    spacing: 10px;
 }
 
 element normal.normal {
@@ -102,20 +109,18 @@ element normal.urgent {
 
 element normal.active {
     background-color: transparent;
-    text-color: @color2;
+    text-color: @color4;
 }
 
-/* Selected Items */
+/* Selected Items (Accent Pill with Dark Text) */
 element selected.normal {
-    background-color: @color4; /* FIXED: Use Accent Color */
-    text-color: @background;   /* FIXED: Dark Text */
-    border: 1px solid;
-    border-color: @color4;
+    background-color: @color4;
+    text-color: @background;
 }
 
 element selected.urgent {
     background-color: @color1;
-    text-color: @background;
+    text-color: @foreground;
 }
 
 element selected.active {
@@ -135,14 +140,12 @@ element alternate.urgent {
 
 element alternate.active {
     background-color: transparent;
-    text-color: @color2;
+    text-color: @color4;
 }
 
 element-icon {
     background-color: transparent;
     size: 24px;
-    margin: 0 12px 0 0;
-    text-color: inherit; /* FIXED: Inherit the dark color when selected */
 }
 
 element-text {
@@ -151,29 +154,13 @@ element-text {
     vertical-align: 0.5;
 }
 
+/* ---------------------------------------------------------
+   SCROLLBAR
+   --------------------------------------------------------- */
 scrollbar {
     handle-width: 4px;
-    handle-color: @color1;
-    background-color: @background;
-    border-radius: 4px;
-    margin: 0 0 0 8px;
-}
-
-/* Mode switcher (tabs) */
-mode-switcher {
+    handle-color: @color4;
     background-color: transparent;
-    spacing: 8px;
-    margin: 0 0 16px 0;
-}
-
-button {
-    background-color: @color8;
-    text-color: @color7;
-    padding: 8px 16px;
-    border-radius: 10px;
-}
-
-button selected {
-    background-color: @color9;
-    text-color: @background;
+    border-radius: 4px;
+    margin: 0 0 0 6px;
 }

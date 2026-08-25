@@ -1,33 +1,62 @@
-@import "../../.cache/wallust/colors-wlogout.css";
+/* ==========================================================================
+   WLOGOUT THEME OVERRIDE
+   Zero Layout Jitter + Frosted Glass Elevation & Accent Glow
+   ========================================================================== */
+
+/* 1. Import compiled Wallust palette from cache */
+@import url("../../.cache/wallust/colors-waybar.css");
 
 * {
   background-image: none;
   box-shadow: none;
+  font-family: "JetBrainsMono Nerd Font Propo", monospace;
 }
 
+/* ---------------------------------------------------------
+   2. FULLSCREEN BACKDROP (Translucent with Hyprland Blur)
+   --------------------------------------------------------- */
 window {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: alpha(@background, 0.55);
 }
 
+/* ---------------------------------------------------------
+   3. GLASS BUTTON CARDS (Constant 2px Border)
+   --------------------------------------------------------- */
 button {
   color: @foreground;
-  background-color: alpha(@background, 0.7);
-  border: 2px solid alpha(@color4, 0.8);
-  border-radius: 12px;
+  background-color: alpha(@background, 0.65);
+  border: 2px solid alpha(@foreground, 0.14);
+  /* 2px normal border */
+  border-radius: 20px;
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: 25%;
-  margin: 12px;
-  transition: all 0.3s ease;
-  outline-style: none;
+  background-position: center 35%;
+  background-size: 28%;
+  margin: 16px;
+  padding-bottom: 24px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  box-shadow: none;
 }
 
+/* ---------------------------------------------------------
+   4. HOVER & FOCUS (Constant 2px Border = Zero Pixel Shift)
+   --------------------------------------------------------- */
+button:focus,
+button:active,
 button:hover {
-  background-color: alpha(@color4, 0.9);
-  color: @background;
-  border-color: @color4;
+  background-color: alpha(@color4, 0.18);
+  border: 2px solid @color4;
+  /* 2px hover border */
+  color: @color4;
+  box-shadow: 0 0 24px alpha(@color4, 0.30);
+  outline: none;
 }
 
+/* ---------------------------------------------------------
+   5. ICONS
+   --------------------------------------------------------- */
 #lock {
   background-image: image(url("/usr/share/wlogout/icons/lock.png"));
 }
