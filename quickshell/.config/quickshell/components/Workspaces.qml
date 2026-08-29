@@ -1,21 +1,12 @@
-import "../"
-
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 
+import "../"
+
 Rectangle {
     id: workspacesPill
-
-    // =========================================================
-    // Dynamic Glass & Palette (Consistent with Kitty 0.7)
-    // =========================================================
-
-    readonly property color bgGlass: Colors.bgGlass !== undefined ? Colors.bgGlass : Qt.rgba(Colors.background.r, Colors.background.g, Colors.background.b, 0.70)
-    readonly property color cardGlass: Colors.cardGlass !== undefined ? Colors.cardGlass : Qt.rgba(Colors.color0.r, Colors.color0.g, Colors.color0.b, 0.40)
-    readonly property color borderGlass: Colors.borderGlass !== undefined ? Colors.borderGlass : Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.16)
-    readonly property color hoverOverlay: Colors.hoverOverlay !== undefined ? Colors.hoverOverlay : Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.08)
 
     // =========================================================
     // Geometry & Slot Configuration
@@ -30,8 +21,6 @@ Rectangle {
 
     readonly property int inactiveWidth: 24
     readonly property int activeWidth: 34
-
-    readonly property int geometryDuration: 300
 
     // =========================================================
     // Workspace Range Calculation
@@ -71,7 +60,7 @@ Rectangle {
 
     Behavior on visibleWorkspaceCount {
         NumberAnimation {
-            duration: workspacesPill.geometryDuration
+            duration: Theme.animIslandWidth
             easing.type: Easing.OutCubic
         }
     }
@@ -88,13 +77,13 @@ Rectangle {
     // Pill Geometry & Glass Container
     // =========================================================
 
-    color: workspacesPill.bgGlass
-    radius: 12
-    border.color: workspacesPill.borderGlass
+    color: Colors.bgGlass
+    radius: Theme.pillRadius
+    border.color: Colors.borderGlass
     border.width: 1
 
-    height: 32
-    implicitHeight: 32
+    height: Theme.pillHeight
+    implicitHeight: Theme.pillHeight
 
     // Pure mathematical width (Zero lag, zero frame desync)
     width: workspacesPill.leftPadding + workspacesPill.rightPadding + Math.max(1, workspacesPill.visibleWorkspaceCount) * workspacesPill.slotWidth + Math.max(0, workspacesPill.visibleWorkspaceCount - 1) * workspacesPill.spacing
@@ -179,7 +168,7 @@ Rectangle {
                 }
                 Behavior on scale {
                     NumberAnimation {
-                        duration: 240
+                        duration: Theme.animButtonScale
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -196,13 +185,13 @@ Rectangle {
 
                     width: workspaceSlot.active ? workspacesPill.activeWidth : workspacesPill.inactiveWidth
                     height: workspacesPill.itemHeight
-                    radius: 12
+                    radius: Theme.pillRadius
 
-                    color: workspaceSlot.active ? Colors.color4 : workspaceSlot.hovered ? workspacesPill.hoverOverlay : "transparent"
+                    color: workspaceSlot.active ? Colors.color4 : workspaceSlot.hovered ? Colors.hoverOverlay : "transparent"
 
                     Behavior on width {
                         NumberAnimation {
-                            duration: workspacesPill.geometryDuration
+                            duration: Theme.animIslandWidth
                             easing.type: Easing.OutCubic
                         }
                     }
@@ -219,9 +208,9 @@ Rectangle {
 
                     Behavior on scale {
                         NumberAnimation {
-                            duration: 240
+                            duration: Theme.animButtonScale
                             easing.type: Easing.OutBack
-                            easing.overshoot: 1.04
+                            easing.overshoot: Theme.animButtonScaleOvershoot
                         }
                     }
                 }
@@ -237,9 +226,9 @@ Rectangle {
 
                     color: workspaceSlot.active ? Colors.background : workspaceSlot.occupied ? Colors.foreground : Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.46)
 
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 12
-                    font.weight: workspaceSlot.active || workspaceSlot.occupied ? Font.Bold : Font.Medium
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeBody
+                    font.weight: workspaceSlot.active || workspaceSlot.occupied ? Theme.weightBold : Theme.weightMedium
 
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -248,7 +237,7 @@ Rectangle {
 
                     Behavior on color {
                         ColorAnimation {
-                            duration: 120
+                            duration: Theme.animHover
                             easing.type: Easing.OutQuad
                         }
                     }

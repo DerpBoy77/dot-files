@@ -1,12 +1,13 @@
-import "../../"
-
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
-
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.Notifications
+
+import "../../"
+import "../../services"
+import "../../widgets"
 
 Item {
     id: notifPopup
@@ -16,13 +17,13 @@ Item {
     implicitWidth: 360
     implicitHeight: notificationStack.implicitHeight
 
-    // Pause expiration when reading notifications
+    // Pause expiration when hovering notifications
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
         z: -1
         onContainsMouseChanged: {
-            pill.isNotificationHovered = containsMouse;
+            NotificationService.isNotificationHovered = containsMouse;
         }
     }
 
@@ -37,7 +38,7 @@ Item {
         spacing: 0
 
         Repeater {
-            model: pill.activeNotifications
+            model: NotificationService.activeNotifications
 
             delegate: Item {
                 id: notifEntry
@@ -49,8 +50,8 @@ Item {
                 implicitHeight: cardColumn.implicitHeight
                 height: implicitHeight
 
-                readonly property bool isLastVisible: index === pill.activeNotifications.length - 1
-                readonly property real remainingProgress: pill.notificationTick >= 0 ? Math.max(0, Math.min(1, (notifEntry.modelData.expiresAt - Date.now()) / Math.max(1, notifEntry.modelData.timeout))) : 0
+                readonly property bool isLastVisible: index === NotificationService.activeNotifications.length - 1
+                readonly property real remainingProgress: NotificationService.notificationTick >= 0 ? Math.max(0, Math.min(1, (notifEntry.modelData.expiresAt - Date.now()) / Math.max(1, notifEntry.modelData.timeout))) : 0
 
                 // Card Click Target
                 MouseArea {
@@ -67,7 +68,7 @@ Item {
                             if (defaultAct)
                                 defaultAct.invoke();
                         }
-                        pill.dismissNotification(notifEntry.modelData.id);
+                        NotificationService.dismissNotification(notifEntry.modelData.id);
                     }
                 }
 
@@ -90,14 +91,13 @@ Item {
                         implicitHeight: notificationContent.implicitHeight + 16
                         height: implicitHeight
 
-                        // Consistent hover treatment matching Clock pill
                         Rectangle {
                             anchors.fill: parent
-                            color: cardMouse.containsMouse ? pill.sectionHover : "transparent"
+                            color: cardMouse.containsMouse ? Colors.hoverOverlay : "transparent"
 
                             Behavior on color {
                                 ColorAnimation {
-                                    duration: 120
+                                    duration: Theme.animHover
                                     easing.type: Easing.OutQuad
                                 }
                             }
@@ -135,7 +135,7 @@ Item {
                                 Rectangle {
                                     id: notificationImageMask
                                     anchors.fill: parent
-                                    radius: 8
+                                    radius: Theme.cardRadius
                                     visible: false
                                 }
 
@@ -148,7 +148,7 @@ Item {
 
                                 IconImage {
                                     anchors.fill: parent
-                                    source: pill.getNotifIcon(notifEntry.modelData.appIcon, notifEntry.modelData.appName, notifEntry.modelData.desktopEntry)
+                                    source: NotificationService.getNotifIcon(notifEntry.modelData.appIcon, notifEntry.modelData.appName, notifEntry.modelData.desktopEntry)
                                     implicitSize: 32
                                     visible: notifEntry.modelData.image === "" && source !== ""
                                 }
@@ -157,9 +157,9 @@ Item {
                                     anchors.centerIn: parent
                                     text: "󰂚"
                                     color: Colors.color4
-                                    font.family: "JetBrainsMono Nerd Font Propo"
+                                    font.family: Theme.fontFamily
                                     font.pixelSize: 20
-                                    visible: notifEntry.modelData.image === "" && pill.getNotifIcon(notifEntry.modelData.appIcon, notifEntry.modelData.appName, notifEntry.modelData.desktopEntry) === ""
+                                    visible: notifEntry.modelData.image === "" && NotificationService.getNotifIcon(notifEntry.modelData.appIcon, notifEntry.modelData.appName, notifEntry.modelData.desktopEntry) === ""
                                 }
                             }
 
@@ -173,9 +173,9 @@ Item {
                                     Layout.fillWidth: true
                                     text: (notifEntry.modelData.appName || "NOTIFICATION").toUpperCase()
                                     color: Colors.color8
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 9
-                                    font.weight: Font.Bold
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeSmallest
+                                    font.weight: Theme.weightBold
                                     elide: Text.ElideRight
                                     maximumLineCount: 1
                                 }
@@ -185,9 +185,9 @@ Item {
                                     text: notifEntry.modelData.summary
                                     visible: text !== ""
                                     color: Colors.foreground
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 12
-                                    font.weight: Font.Bold
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeBody
+                                    font.weight: Theme.weightBold
                                     textFormat: Text.StyledText
                                     wrapMode: Text.Wrap
                                     maximumLineCount: 2
@@ -200,8 +200,8 @@ Item {
                                     visible: text !== ""
                                     color: Colors.foreground
                                     opacity: 0.85
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 11
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeRegular
                                     textFormat: Text.StyledText
                                     wrapMode: Text.Wrap
                                     maximumLineCount: 3
@@ -214,8 +214,8 @@ Item {
                                 Layout.preferredWidth: 22
                                 Layout.preferredHeight: 22
                                 Layout.alignment: Qt.AlignTop
-                                radius: 6
-                                color: notifCloseMouse.pressed ? pill.sectionPressed : notifCloseMouse.containsMouse ? pill.sectionHover : "transparent"
+                                radius: Theme.smallRadius
+                                color: notifCloseMouse.pressed ? Colors.pressedOverlay : notifCloseMouse.containsMouse ? Colors.hoverOverlay : "transparent"
 
                                 Behavior on color {
                                     ColorAnimation {
@@ -228,8 +228,8 @@ Item {
                                     anchors.centerIn: parent
                                     text: "󰅖"
                                     color: notifCloseMouse.containsMouse ? Colors.color1 : Colors.color8
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 12
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeBody
                                 }
 
                                 MouseArea {
@@ -241,7 +241,7 @@ Item {
                                     cursorShape: Qt.PointingHandCursor
 
                                     onClicked: {
-                                        pill.dismissNotification(notifEntry.modelData.id);
+                                        NotificationService.dismissNotification(notifEntry.modelData.id);
                                     }
                                 }
                             }
@@ -270,15 +270,15 @@ Item {
 
                                 height: 24
                                 width: actionText.implicitWidth + 18
-                                radius: 6
+                                radius: Theme.smallRadius
 
-                                color: actionMouse.pressed ? Qt.darker(Colors.color4, 1.2) : actionMouse.containsMouse ? Colors.color4 : pill.cardGlass
-                                border.color: actionMouse.containsMouse ? Colors.color4 : pill.borderGlass
+                                color: actionMouse.pressed ? Qt.darker(Colors.color4, 1.2) : actionMouse.containsMouse ? Colors.color4 : Colors.cardGlass
+                                border.color: actionMouse.containsMouse ? Colors.color4 : Colors.borderGlass
                                 border.width: 1
 
                                 Behavior on color {
                                     ColorAnimation {
-                                        duration: 120
+                                        duration: Theme.animHover
                                         easing.type: Easing.OutQuad
                                     }
                                 }
@@ -288,9 +288,9 @@ Item {
                                     anchors.centerIn: parent
                                     text: modelData.text || "Action"
                                     color: actionMouse.containsMouse ? Colors.background : Colors.foreground
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 10
-                                    font.weight: Font.Bold
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    font.weight: Theme.weightBold
                                     elide: Text.ElideRight
                                 }
 
@@ -306,7 +306,7 @@ Item {
                                         if (modelData)
                                             modelData.invoke();
 
-                                        pill.dismissNotification(notifEntry.modelData.id);
+                                        NotificationService.dismissNotification(notifEntry.modelData.id);
                                     }
                                 }
                             }
@@ -360,7 +360,7 @@ Item {
                     Rectangle {
                         width: parent.width
                         height: notifEntry.isLastVisible ? 0 : 1
-                        color: pill.borderGlass
+                        color: Colors.borderGlass
                         visible: !notifEntry.isLastVisible
                     }
                 }

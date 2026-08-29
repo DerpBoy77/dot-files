@@ -1,12 +1,11 @@
-import "../../"
-
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
-
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Hyprland
+
+import "../../"
 
 PopupWindow {
     id: root
@@ -100,9 +99,9 @@ PopupWindow {
         }
         implicitWidth: Math.max(160, menuItemsColumn.implicitWidth + 16)
         implicitHeight: menuItemsColumn.implicitHeight + 16
-        radius: 12
-        color: pill.bgGlass
-        border.color: pill.borderGlass
+        radius: Theme.pillRadius
+        color: Colors.bgGlass
+        border.color: Colors.borderGlass
         border.width: 1
         clip: true
 
@@ -114,20 +113,20 @@ PopupWindow {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 150
+                duration: Theme.animContentFade
                 easing.type: Easing.OutQuad
             }
         }
         Behavior on scale {
             NumberAnimation {
-                duration: 240
+                duration: Theme.animButtonScale
                 easing.type: Easing.OutBack
-                easing.overshoot: 1.04
+                easing.overshoot: Theme.animButtonScaleOvershoot
             }
         }
         Behavior on y {
             NumberAnimation {
-                duration: 240
+                duration: Theme.animButtonScale
                 easing.type: Easing.OutCubic
             }
         }
@@ -154,19 +153,19 @@ PopupWindow {
                         anchors.centerIn: parent
                         width: parent.width
                         height: 1
-                        color: pill.borderGlass
+                        color: Colors.borderGlass
                     }
 
                     Rectangle {
                         visible: !menuItemDelegate.modelData.isSeparator
                         anchors.fill: parent
-                        radius: 6
-                        color: itemMouse.containsMouse ? pill.cardGlass : "transparent"
+                        radius: Theme.itemRadius
+                        color: itemMouse.containsMouse ? Colors.cardGlass : "transparent"
                         opacity: menuItemDelegate.modelData.enabled !== false ? 1 : 0.65
 
                         Behavior on color {
                             ColorAnimation {
-                                duration: 120
+                                duration: Theme.animHover
                                 easing.type: Easing.OutQuad
                             }
                         }
@@ -181,8 +180,8 @@ PopupWindow {
                                 visible: menuItemDelegate.modelData.checkState !== undefined && menuItemDelegate.modelData.checkState !== Qt.Unchecked
                                 text: "󰄬"
                                 color: Colors.color4
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 11
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeRegular
                             }
 
                             Item {
@@ -206,7 +205,7 @@ PopupWindow {
                                     color: itemMouse.containsMouse ? Colors.color4 : Colors.foreground
                                     Behavior on color {
                                         ColorAnimation {
-                                            duration: 120
+                                            duration: Theme.animHover
                                             easing.type: Easing.OutQuad
                                         }
                                     }
@@ -217,9 +216,9 @@ PopupWindow {
                                 Layout.fillWidth: true
                                 text: (menuItemDelegate.modelData.text || "").replace(/_([a-zA-Z0-9])/g, "$1")
                                 color: itemMouse.containsMouse ? Colors.color4 : Colors.foreground
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 11
-                                font.weight: Font.Medium
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeRegular
+                                font.weight: Theme.weightMedium
                                 elide: Text.ElideRight
                             }
 
@@ -227,8 +226,8 @@ PopupWindow {
                                 visible: menuItemDelegate.modelData.hasChildren
                                 text: "󰅂"
                                 color: Colors.color8
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 10
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeSmall
                             }
                         }
 

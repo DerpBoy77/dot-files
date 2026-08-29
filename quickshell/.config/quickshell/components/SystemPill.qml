@@ -1,6 +1,3 @@
-import "../"
-import "./popups"
-
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
@@ -8,11 +5,12 @@ import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.SystemTray
-import Quickshell.Services.Pipewire
 import Quickshell.Services.Notifications
-import Quickshell.Bluetooth
-import Quickshell.Networking
 import Quickshell.Hyprland
+
+import "../"
+import "../services"
+import "./popups"
 
 Rectangle {
     id: systemPill
@@ -21,11 +19,11 @@ Rectangle {
     // Dynamic Glass & Palette Helpers
     // =========================================================
 
-    readonly property color bgGlass: Colors.bgGlass !== undefined ? Colors.bgGlass : Qt.rgba(Colors.background.r, Colors.background.g, Colors.background.b, 0.70)
-    readonly property color cardGlass: Colors.cardGlass !== undefined ? Colors.cardGlass : Qt.rgba(Colors.color0.r, Colors.color0.g, Colors.color0.b, 0.40)
-    readonly property color borderGlass: Colors.borderGlass !== undefined ? Colors.borderGlass : Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.16)
-    readonly property color sectionHover: Colors.hoverOverlay !== undefined ? Colors.hoverOverlay : Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.08)
-    readonly property color sectionPressed: Colors.pressedOverlay !== undefined ? Colors.pressedOverlay : Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.14)
+    readonly property color bgGlass: Colors.bgGlass
+    readonly property color cardGlass: Colors.cardGlass
+    readonly property color borderGlass: Colors.borderGlass
+    readonly property color sectionHover: Colors.hoverOverlay
+    readonly property color sectionPressed: Colors.pressedOverlay
 
     readonly property int sectionHeight: 24
 
@@ -44,279 +42,56 @@ Rectangle {
     property bool popupExpanded: false
     property bool contentVisible: false
 
-    property int popupTargetHeight: 32
-    readonly property int popupTargetWidth: 360
+    property int popupTargetHeight: Theme.popupDefaultHeight
+    readonly property int popupTargetWidth: Theme.popupWidth
 
     readonly property int tabBarTopMargin: 12
-    readonly property int tabBarHeight: 32
+    readonly property int tabBarHeight: Theme.pillHeight
     readonly property int tabBarBottomMargin: 12
 
     signal popupOpened
 
-    // =========================================================
-    // Notification Engine (Uncapped Stack)
-    // =========================================================
+    // Reactive listener for incoming notifications
+    Connections {
+        target: NotificationService
 
-    property var activeNotifications: []
-    readonly property var visibleNotifications: activeNotifications
-    readonly property bool hasActiveNotification: activeNotifications.length > 0
-
-    property bool isNotificationHovered: false
-    property int notificationTick: 0
-
-    // =========================================================
-    // Notification Icon Resolver
-    // =========================================================
-
-    function getNotifIcon(iconName, appName, desktopEntry) {
-        if (iconName && iconName !== "") {
-            if (iconName.startsWith("/") || iconName.startsWith("file://") || iconName.startsWith("image://")) {
-                return iconName;
+        function onNotificationPushed(item) {
+            if (systemPill.popupShown && systemPill.popupType === systemPill.popupNotification) {
+                systemPill.capturePopupHeight();
+                return;
             }
 
-            let path = Quickshell.iconPath(iconName, true);
-            if (path !== "")
-                return path;
+            systemPill.closeTimer.stop();
+            systemPill.tabSwitchTimer.stop();
 
-            let nonSym = iconName.replace(/-symbolic$/, "");
-            if (Quickshell.hasThemeIcon(nonSym))
-                return Quickshell.iconPath(nonSym, true);
-        }
-
-        if (desktopEntry && desktopEntry !== "") {
-            let cleanEntry = desktopEntry.replace(/\.desktop$/, "");
-            let path = Quickshell.iconPath(cleanEntry, true);
-            if (path !== "")
-                return path;
-
-            if (Quickshell.hasThemeIcon(cleanEntry))
-                return Quickshell.iconPath(cleanEntry, true);
-        }
-
-        if (appName && appName !== "") {
-            let lower = appName.toLowerCase().replace(/\s+/g, "-");
-            if (Quickshell.hasThemeIcon(lower))
-                return Quickshell.iconPath(lower, true);
-        }
-
-        return "";
-    }
-
-    // =========================================================
-    // Notification Server
-    // =========================================================
-
-    NotificationServer {
-        id: notifServer
-
-        actionsSupported: true
-        bodySupported: true
-        bodyMarkupSupported: true
-        imageSupported: true
-
-        onNotification: notif => {
-            if (!notif)
-                return;
-
-            notif.tracked = true;
-            systemPill.pushNotification(notif);
-        }
-    }
-
-    // =========================================================
-    // Notification Expiration Engine
-    // =========================================================
-
-    Timer {
-        id: notificationExpiryTimer
-
-        interval: 200
-        repeat: true
-        running: systemPill.activeNotifications.length > 0 && !systemPill.isNotificationHovered
-
-        onTriggered: {
-            systemPill.expireDueNotifications();
-        }
-    }
-
-    Timer {
-        id: notificationProgressTimer
-
-        interval: 40
-        repeat: true
-        running: systemPill.popupShown && systemPill.popupType === systemPill.popupNotification && systemPill.contentVisible && !systemPill.isNotificationHovered
-
-        onTriggered: {
-            systemPill.notificationTick++;
-        }
-    }
-
-    // =========================================================
-    // Push Notification
-    // =========================================================
-
-    function pushNotification(notif) {
-        if (!notif)
-            return;
-
-        const timeout = notif.urgency === NotificationUrgency.Critical ? 10000 : (notif.expireTimeout > 0 ? Math.round(notif.expireTimeout * 1000) : 5500);
-        const id = notif.id || (Date.now() + Math.random());
-        const now = Date.now();
-
-        const item = {
-            id: id,
-            obj: notif,
-            appName: notif.appName || "",
-            summary: notif.summary || "",
-            body: notif.body || "",
-            appIcon: notif.appIcon || "",
-            desktopEntry: notif.desktopEntry || "",
-            image: notif.image || "",
-            urgency: notif.urgency,
-            timeout: timeout,
-            expiresAt: now + timeout
-        };
-
-        let next = [item];
-        for (let old of activeNotifications) {
-            if (old.id === id)
-                continue;
-            next.push(old);
-        }
-
-        activeNotifications = next;
-        notificationExpiryTimer.start();
-
-        if (popupShown && popupType === popupNotification) {
-            capturePopupHeight();
-            return;
-        }
-
-        closeTimer.stop();
-        tabSwitchTimer.stop();
-
-        popupType = popupNotification;
-        popupShown = true;
-        popupExpanded = false;
-        contentVisible = false;
-
-        Qt.callLater(function () {
-            if (!popupShown || popupType !== popupNotification)
-                return;
-
-            dynamicPopup.anchor.updateAnchor();
+            systemPill.popupType = systemPill.popupNotification;
+            systemPill.popupShown = true;
+            systemPill.popupExpanded = false;
+            systemPill.contentVisible = false;
 
             Qt.callLater(function () {
-                if (!popupShown || popupType !== popupNotification)
+                if (!systemPill.popupShown || systemPill.popupType !== systemPill.popupNotification)
                     return;
 
-                capturePopupHeight();
-                popupExpanded = true;
-                contentVisible = true;
-                popupOpened();
+                dynamicPopup.anchor.updateAnchor();
+
+                Qt.callLater(function () {
+                    if (!systemPill.popupShown || systemPill.popupType !== systemPill.popupNotification)
+                        return;
+
+                    systemPill.capturePopupHeight();
+                    systemPill.popupExpanded = true;
+                    systemPill.contentVisible = true;
+                    systemPill.popupOpened();
+                });
             });
-        });
-    }
-
-    // =========================================================
-    // Expire Due Notifications
-    // =========================================================
-
-    function expireDueNotifications() {
-        if (activeNotifications.length === 0) {
-            notificationExpiryTimer.stop();
-            return;
         }
 
-        if (isNotificationHovered)
-            return;
-
-        const now = Date.now();
-        let next = [];
-        let changed = false;
-
-        for (let item of activeNotifications) {
-            if (item.expiresAt <= now) {
-                if (item.obj && item.obj.tracked)
-                    item.obj.expire();
-
-                changed = true;
-                continue;
+        function onAllDismissed() {
+            if (systemPill.popupType === systemPill.popupNotification) {
+                systemPill.closePopup();
             }
-
-            next.push(item);
         }
-
-        if (!changed)
-            return;
-
-        activeNotifications = next;
-
-        if (activeNotifications.length === 0) {
-            notificationExpiryTimer.stop();
-            if (popupType === popupNotification)
-                closePopup();
-            return;
-        }
-
-        capturePopupHeight();
-    }
-
-    // =========================================================
-    // Dismiss Notification
-    // =========================================================
-
-    function dismissNotification(id) {
-        const item = activeNotifications.find(n => n.id === id);
-        if (!item)
-            return;
-
-        if (item.obj && item.obj.tracked)
-            item.obj.dismiss();
-
-        activeNotifications = activeNotifications.filter(n => n.id !== id);
-
-        if (activeNotifications.length === 0) {
-            notificationExpiryTimer.stop();
-            if (popupType === popupNotification)
-                closePopup();
-            return;
-        }
-
-        capturePopupHeight();
-    }
-
-    function dismissAllNotifications() {
-        for (let item of activeNotifications) {
-            if (item.obj && item.obj.tracked)
-                item.obj.dismiss();
-        }
-
-        activeNotifications = [];
-        notificationExpiryTimer.stop();
-
-        if (popupType === popupNotification)
-            closePopup();
-    }
-
-    // =========================================================
-    // Connectivity & Audio
-    // =========================================================
-
-    property bool hasWifi: {
-        if (!Networking.devices)
-            return false;
-
-        for (let device of Networking.devices.values) {
-            if (device.type === DeviceType.Wifi)
-                return true;
-        }
-
-        return false;
-    }
-
-    PwObjectTracker {
-        objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource].filter(Boolean)
     }
 
     // =========================================================
@@ -325,12 +100,11 @@ Rectangle {
 
     function capturePopupHeight() {
         if (!popupContent.item || popupContent.item.implicitHeight <= 0) {
-            popupTargetHeight = 32;
+            popupTargetHeight = Theme.popupDefaultHeight;
             return;
         }
 
         if (popupType === popupNotification) {
-            // Cap to comfortable screen limits so high-volume bursts don't run off-screen
             let computed = Math.ceil(33 + popupContent.item.implicitHeight);
             popupTargetHeight = Math.min(800, computed);
             return;
@@ -381,11 +155,9 @@ Rectangle {
         tabSwitchTimer.restart();
     }
 
-    Timer {
-        id: tabSwitchTimer
-
-        property int targetType: popupNone
-        interval: 90
+    property var tabSwitchTimer: Timer {
+        property int targetType: systemPill.popupNone
+        interval: Theme.tabSwitchDelay
         repeat: false
 
         onTriggered: {
@@ -427,18 +199,16 @@ Rectangle {
         closeTimer.restart();
     }
 
-    Timer {
-        id: closeTimer
-
-        interval: 350
+    property var closeTimer: Timer {
+        interval: Theme.closeDelay
         repeat: false
 
         onTriggered: {
             systemPill.popupShown = false;
             systemPill.popupExpanded = false;
             systemPill.contentVisible = false;
-            systemPill.popupTargetHeight = 32;
-            systemPill.popupType = popupNone;
+            systemPill.popupTargetHeight = Theme.popupDefaultHeight;
+            systemPill.popupType = systemPill.popupNone;
         }
     }
 
@@ -460,7 +230,7 @@ Rectangle {
                 return;
 
             if (systemPill.popupType === systemPill.popupNotification) {
-                systemPill.dismissAllNotifications();
+                NotificationService.dismissAllNotifications();
             } else {
                 systemPill.closePopup();
             }
@@ -468,28 +238,28 @@ Rectangle {
     }
 
     // =========================================================
-    // Main Pill
+    // Main In-Bar Pill
     // =========================================================
 
-    color: popupShown ? "transparent" : systemPill.bgGlass
-    radius: 12
-    border.color: popupShown ? "transparent" : systemPill.borderGlass
+    color: popupShown ? "transparent" : Colors.bgGlass
+    radius: Theme.pillRadius
+    border.color: popupShown ? "transparent" : Colors.borderGlass
     border.width: popupShown ? 0 : 1
-    implicitHeight: 32
-    height: 32
+    implicitHeight: Theme.pillHeight
+    height: Theme.pillHeight
     implicitWidth: pillRow.implicitWidth + 16
     Layout.margins: 4
     opacity: popupShown ? 0 : 1
 
     Behavior on opacity {
         NumberAnimation {
-            duration: 90
+            duration: Theme.animPillFade
             easing.type: Easing.OutQuad
         }
     }
 
     // =========================================================
-    // Controls Row
+    // Controls Row Component
     // =========================================================
 
     component ControlsRow: Row {
@@ -525,12 +295,12 @@ Rectangle {
 
                     width: 22
                     height: 22
-                    radius: 6
+                    radius: Theme.smallRadius
                     color: trayMouse.pressed ? systemPill.sectionPressed : trayMouse.containsMouse ? systemPill.sectionHover : "transparent"
 
                     Behavior on color {
                         ColorAnimation {
-                            duration: 120
+                            duration: Theme.animHover
                             easing.type: Easing.OutQuad
                         }
                     }
@@ -555,7 +325,7 @@ Rectangle {
 
                             Behavior on color {
                                 ColorAnimation {
-                                    duration: 120
+                                    duration: Theme.animHover
                                     easing.type: Easing.OutQuad
                                 }
                             }
@@ -617,27 +387,24 @@ Rectangle {
             id: bluetoothToggle
             implicitWidth: 28
             implicitHeight: systemPill.sectionHeight
-            radius: 8
+            radius: Theme.cardRadius
             anchors.verticalCenter: parent.verticalCenter
-
-            property var adapter: Bluetooth.defaultAdapter
-            property bool powered: adapter !== null && adapter.enabled
 
             color: bluetoothMouse.pressed ? systemPill.sectionPressed : bluetoothMouse.containsMouse ? systemPill.sectionHover : "transparent"
 
             Behavior on color {
                 ColorAnimation {
-                    duration: 120
+                    duration: Theme.animHover
                     easing.type: Easing.OutQuad
                 }
             }
 
             Text {
                 anchors.centerIn: parent
-                text: bluetoothToggle.powered ? "󰂯" : "󰂲"
-                color: bluetoothToggle.powered ? Colors.color4 : Colors.color8
-                font.family: "JetBrainsMono Nerd Font Propo"
-                font.pixelSize: 15
+                text: BluetoothService.powered ? "󰂯" : "󰂲"
+                color: BluetoothService.powered ? Colors.color4 : Colors.color8
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeHeader
             }
 
             MouseArea {
@@ -654,28 +421,16 @@ Rectangle {
             id: netSection
             implicitWidth: 28
             implicitHeight: systemPill.sectionHeight
-            radius: 8
+            radius: Theme.cardRadius
             anchors.verticalCenter: parent.verticalCenter
 
-            property var activeDevice: {
-                if (!Networking.devices)
-                    return null;
-
-                for (let device of Networking.devices.values) {
-                    if (device.connected)
-                        return device;
-                }
-                return null;
-            }
-
-            property bool wifiConnected: activeDevice !== null && activeDevice.type === DeviceType.Wifi
-            property bool ethernetConnected: activeDevice !== null && activeDevice.type === DeviceType.Wired
+            readonly property bool isConnected: (NetworkService.connectedWifiNetwork !== null) || NetworkService.ethernetConnected
 
             color: networkMouse.pressed ? systemPill.sectionPressed : networkMouse.containsMouse ? systemPill.sectionHover : "transparent"
 
             Behavior on color {
                 ColorAnimation {
-                    duration: 120
+                    duration: Theme.animHover
                     easing.type: Easing.OutQuad
                 }
             }
@@ -683,15 +438,15 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: {
-                    if (netSection.wifiConnected)
-                        return "󰤨";
-                    if (netSection.ethernetConnected)
+                    if (NetworkService.connectedWifiNetwork !== null)
+                        return NetworkService.signalIcon(NetworkService.connectedWifiNetwork.signalStrength);
+                    if (NetworkService.ethernetConnected)
                         return "󰈀";
-                    return systemPill.hasWifi ? "󰤭" : "󰈂";
+                    return NetworkService.hasWifi ? "󰤭" : "󰈂";
                 }
-                color: (netSection.wifiConnected || netSection.ethernetConnected) ? Colors.color4 : Colors.color8
-                font.family: "JetBrainsMono Nerd Font Propo"
-                font.pixelSize: 15
+                color: netSection.isConnected ? Colors.color4 : Colors.color8
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeHeader
             }
 
             MouseArea {
@@ -708,16 +463,14 @@ Rectangle {
             id: audioSection
             implicitWidth: audioRow.implicitWidth + 8
             implicitHeight: systemPill.sectionHeight
-            radius: 8
+            radius: Theme.cardRadius
             anchors.verticalCenter: parent.verticalCenter
-
-            property var sink: Pipewire.defaultAudioSink
 
             color: audioMouse.pressed ? systemPill.sectionPressed : audioMouse.containsMouse ? systemPill.sectionHover : "transparent"
 
             Behavior on color {
                 ColorAnimation {
-                    duration: 120
+                    duration: Theme.animHover
                     easing.type: Easing.OutQuad
                 }
             }
@@ -731,36 +484,18 @@ Rectangle {
                     width: 18
                     height: 18
                     anchors.verticalCenter: parent.verticalCenter
-                    text: {
-                        if (!audioSection.sink || !audioSection.sink.audio)
-                            return "󰕾";
-                        if (audioSection.sink.audio.muted)
-                            return "󰝟";
-
-                        let volume = audioSection.sink.audio.volume;
-                        if (volume <= 0.01)
-                            return "󰝟";
-                        if (volume < 0.33)
-                            return "󰕿";
-                        if (volume < 0.66)
-                            return "󰖀";
-                        return "󰕾";
-                    }
-                    color: (audioSection.sink && audioSection.sink.audio && audioSection.sink.audio.muted) ? Colors.color8 : Colors.color4
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 15
+                    text: AudioService.outputIcon()
+                    color: AudioService.outputMuted() ? Colors.color8 : Colors.color4
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeHeader
                 }
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: {
-                        if (!audioSection.sink || !audioSection.sink.audio)
-                            return "0%";
-                        return Math.round(audioSection.sink.audio.volume * 100) + "%";
-                    }
+                    text: Math.round(AudioService.outputVolume() * 100) + "%"
                     color: Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 12
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeBody
                 }
             }
 
@@ -776,27 +511,18 @@ Rectangle {
                         systemPill.togglePopup(systemPill.popupAudio);
                         return;
                     }
-
-                    if (audioSection.sink && audioSection.sink.audio) {
-                        audioSection.sink.audio.muted = !audioSection.sink.audio.muted;
-                    }
+                    AudioService.toggleOutputMute();
                 }
 
                 onWheel: wheel => {
-                    if (!audioSection.sink || !audioSection.sink.audio)
-                        return;
-
                     let delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
-                    audioSection.sink.audio.volume = Math.max(0, Math.min(1.0, audioSection.sink.audio.volume + delta));
+                    AudioService.setOutputVolume(AudioService.outputVolume() + delta);
                 }
             }
         }
     }
 
-    // =========================================================
     // In-Bar Row
-    // =========================================================
-
     ControlsRow {
         id: pillRow
         anchors.centerIn: parent
@@ -808,7 +534,7 @@ Rectangle {
     }
 
     // =========================================================
-    // Dynamic Island
+    // Dynamic Island Popup
     // =========================================================
 
     PopupWindow {
@@ -848,38 +574,37 @@ Rectangle {
             }
 
             width: systemPill.popupExpanded ? systemPill.popupTargetWidth : systemPill.width
-            height: systemPill.popupExpanded ? systemPill.popupTargetHeight : 32
-            radius: systemPill.popupExpanded ? 18 : 12
+            height: systemPill.popupExpanded ? systemPill.popupTargetHeight : Theme.pillHeight
+            radius: systemPill.popupExpanded ? Theme.islandRadius : Theme.pillRadius
 
-            color: systemPill.bgGlass
-            border.color: (systemPill.popupType === systemPill.popupNotification && systemPill.activeNotifications.length > 0 && systemPill.activeNotifications[0].urgency === NotificationUrgency.Critical) ? Colors.color1 : systemPill.borderGlass
+            color: Colors.bgGlass
+            border.color: (systemPill.popupType === systemPill.popupNotification && NotificationService.activeNotifications.length > 0 && NotificationService.activeNotifications[0].urgency === NotificationUrgency.Critical) ? Colors.color1 : Colors.borderGlass
             border.width: 1
             clip: true
 
-            // Matched to Clock.qml Island Behavior
             Behavior on width {
                 NumberAnimation {
-                    duration: 300
+                    duration: Theme.animIslandWidth
                     easing.type: Easing.OutCubic
                 }
             }
 
             Behavior on height {
                 NumberAnimation {
-                    duration: 340
+                    duration: Theme.animIslandHeight
                     easing.type: Easing.OutCubic
                 }
             }
 
             Behavior on radius {
                 NumberAnimation {
-                    duration: 260
+                    duration: Theme.animIslandRadius
                     easing.type: Easing.OutCubic
                 }
             }
 
             // =================================================
-            // Top Bar
+            // Top Bar for Notifications
             // =================================================
 
             Item {
@@ -891,7 +616,7 @@ Rectangle {
                     right: parent.right
                 }
 
-                height: 32
+                height: Theme.pillHeight
                 visible: systemPill.popupType === systemPill.popupNotification
 
                 ControlsRow {
@@ -902,7 +627,6 @@ Rectangle {
                     }
                 }
 
-                // Matched divider physics from Clock.qml
                 Rectangle {
                     anchors {
                         left: parent.left
@@ -910,12 +634,12 @@ Rectangle {
                         bottom: parent.bottom
                     }
                     height: 1
-                    color: systemPill.borderGlass
+                    color: Colors.borderGlass
                     opacity: systemPill.popupExpanded ? 1 : 0
 
                     Behavior on opacity {
                         NumberAnimation {
-                            duration: 140
+                            duration: Theme.animDividerFade
                             easing.type: Easing.OutQuad
                         }
                     }
@@ -940,15 +664,15 @@ Rectangle {
 
                 height: visible ? systemPill.tabBarHeight : 0
                 visible: systemPill.popupType !== systemPill.popupNotification
-                radius: 8
-                color: systemPill.cardGlass
-                border.color: systemPill.borderGlass
+                radius: Theme.cardRadius
+                color: Colors.cardGlass
+                border.color: Colors.borderGlass
                 border.width: 1
                 opacity: systemPill.popupExpanded && visible ? 1 : 0
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 140
+                        duration: Theme.animDividerFade
                         easing.type: Easing.OutQuad
                     }
                 }
@@ -958,16 +682,16 @@ Rectangle {
                     anchors.margins: 2
                     spacing: 2
 
-                    // Bluetooth
+                    // Bluetooth Tab
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: 6
-                        color: systemPill.popupType === systemPill.popupBluetooth ? Colors.color4 : btTabMouse.containsMouse ? systemPill.sectionHover : "transparent"
+                        radius: Theme.smallRadius
+                        color: systemPill.popupType === systemPill.popupBluetooth ? Colors.color4 : btTabMouse.containsMouse ? Colors.hoverOverlay : "transparent"
 
                         Behavior on color {
                             ColorAnimation {
-                                duration: 120
+                                duration: Theme.animHover
                                 easing.type: Easing.OutQuad
                             }
                         }
@@ -979,16 +703,16 @@ Rectangle {
                             Text {
                                 text: "󰂯"
                                 color: systemPill.popupType === systemPill.popupBluetooth ? Colors.background : Colors.foreground
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 13
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeTitle
                             }
 
                             Text {
                                 text: "Bluetooth"
                                 color: systemPill.popupType === systemPill.popupBluetooth ? Colors.background : Colors.foreground
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 11
-                                font.weight: systemPill.popupType === systemPill.popupBluetooth ? Font.Bold : Font.Medium
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeRegular
+                                font.weight: systemPill.popupType === systemPill.popupBluetooth ? Theme.weightBold : Theme.weightMedium
                             }
                         }
 
@@ -1001,16 +725,16 @@ Rectangle {
                         }
                     }
 
-                    // Network
+                    // Network Tab
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: 6
-                        color: systemPill.popupType === systemPill.popupNetwork ? Colors.color4 : netTabMouse.containsMouse ? systemPill.sectionHover : "transparent"
+                        radius: Theme.smallRadius
+                        color: systemPill.popupType === systemPill.popupNetwork ? Colors.color4 : netTabMouse.containsMouse ? Colors.hoverOverlay : "transparent"
 
                         Behavior on color {
                             ColorAnimation {
-                                duration: 120
+                                duration: Theme.animHover
                                 easing.type: Easing.OutQuad
                             }
                         }
@@ -1020,18 +744,18 @@ Rectangle {
                             spacing: 6
 
                             Text {
-                                text: systemPill.hasWifi ? "󰤨" : "󰈀"
+                                text: NetworkService.hasWifi ? "󰤨" : "󰈀"
                                 color: systemPill.popupType === systemPill.popupNetwork ? Colors.background : Colors.foreground
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 13
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeTitle
                             }
 
                             Text {
                                 text: "Network"
                                 color: systemPill.popupType === systemPill.popupNetwork ? Colors.background : Colors.foreground
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 11
-                                font.weight: systemPill.popupType === systemPill.popupNetwork ? Font.Bold : Font.Medium
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeRegular
+                                font.weight: systemPill.popupType === systemPill.popupNetwork ? Theme.weightBold : Theme.weightMedium
                             }
                         }
 
@@ -1044,16 +768,16 @@ Rectangle {
                         }
                     }
 
-                    // Audio
+                    // Audio Tab
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: 6
-                        color: systemPill.popupType === systemPill.popupAudio ? Colors.color4 : audioTabMouse.containsMouse ? systemPill.sectionHover : "transparent"
+                        radius: Theme.smallRadius
+                        color: systemPill.popupType === systemPill.popupAudio ? Colors.color4 : audioTabMouse.containsMouse ? Colors.hoverOverlay : "transparent"
 
                         Behavior on color {
                             ColorAnimation {
-                                duration: 120
+                                duration: Theme.animHover
                                 easing.type: Easing.OutQuad
                             }
                         }
@@ -1065,16 +789,16 @@ Rectangle {
                             Text {
                                 text: "󰕾"
                                 color: systemPill.popupType === systemPill.popupAudio ? Colors.background : Colors.foreground
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 13
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeTitle
                             }
 
                             Text {
                                 text: "Audio"
                                 color: systemPill.popupType === systemPill.popupAudio ? Colors.background : Colors.foreground
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 11
-                                font.weight: systemPill.popupType === systemPill.popupAudio ? Font.Bold : Font.Medium
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeRegular
+                                font.weight: systemPill.popupType === systemPill.popupAudio ? Theme.weightBold : Theme.weightMedium
                             }
                         }
 
@@ -1121,25 +845,24 @@ Rectangle {
                 y: systemPill.popupExpanded && systemPill.contentVisible ? 0 : -6
                 transformOrigin: Item.TopRight
 
-                // Matched spring pop physics from Clock.qml
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 150
+                        duration: Theme.animContentFade
                         easing.type: Easing.OutQuad
                     }
                 }
 
                 Behavior on scale {
                     NumberAnimation {
-                        duration: 260
+                        duration: Theme.animContentScale
                         easing.type: Easing.OutBack
-                        easing.overshoot: 1.05
+                        easing.overshoot: Theme.animContentScaleOvershoot
                     }
                 }
 
                 Behavior on y {
                     NumberAnimation {
-                        duration: 280
+                        duration: Theme.animContentY
                         easing.type: Easing.OutCubic
                     }
                 }

@@ -1,117 +1,29 @@
-import "../../"
-
 import QtQuick
 import QtQuick.Layouts
-
 import Quickshell.Networking
-import Quickshell.Io
+
+import "../../"
+import "../../services"
+import "../../widgets"
 
 Item {
     id: wifiPopup
 
     required property var pill
 
-    readonly property var wifiDevice: {
-        if (!Networking.devices)
-            return null;
-        for (let device of Networking.devices.values) {
-            if (device.type === DeviceType.Wifi)
-                return device;
-        }
-        return null;
-    }
-
-    readonly property var ethernetDevice: {
-        if (!Networking.devices)
-            return null;
-        for (let device of Networking.devices.values) {
-            if (device.type === DeviceType.Wired)
-                return device;
-        }
-        return null;
-    }
-
-    readonly property bool hasWifi: wifiDevice !== null
-    readonly property bool hasEthernet: ethernetDevice !== null
-    readonly property bool ethernetConnected: ethernetDevice !== null && ethernetDevice.connected
-
-    readonly property var connectedWifiNetwork: {
-        let device = wifiPopup.wifiDevice;
-        if (!device || !device.networks)
-            return null;
-        for (let network of device.networks.values) {
-            if (network.connected)
-                return network;
-        }
-        return null;
-    }
-
-    property string dynamicIp: "Unknown"
-    property string dynamicGw: "Unknown"
-    property string dynamicSpeed: "N/A"
-    property string dynamicIface: "Unknown"
-
-    // Enhanced Telemetry Script with Ethtool + Physical Interface Fallbacks
-    Process {
-        id: netStatsProc
-        command: ["sh", "-c", "iface=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}'); " + "if [ -z \"$iface\" ]; then iface=$(ip -o link show 2>/dev/null | awk -F': ' '$2 !~ /^lo$/ {print $2; exit}'); fi; " + "ip=$(ip -4 -o addr show dev \"$iface\" 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n1); " + "if [ -z \"$ip\" ]; then ip=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"src\") {print $(i+1); exit}}'); fi; " + "gw=$(ip -4 route show default 2>/dev/null | awk 'NR==1 {print $3}'); " + "speed=''; " + "phys_iface=\"$iface\"; " + "if [ ! -d \"/sys/class/net/$iface/device\" ]; then " + "phys_iface=$(ls -d /sys/class/net/*/device 2>/dev/null | awk -F'/' '{print $(NF-1)}' | head -n1); " + "fi; " + "phys_iface=\"${phys_iface:-$iface}\"; " + "if [ -n \"$phys_iface\" ]; then " + "speed=$(iw dev \"$phys_iface\" link 2>/dev/null | sed -n 's/.*tx bitrate: \\([0-9.]* [^ ]*\\).*/\\1/p' | head -n1); " + "if [ -z \"$speed\" ] && [ -r \"/sys/class/net/$phys_iface/speed\" ]; then " + "raw_speed=$(cat \"/sys/class/net/$phys_iface/speed\" 2>/dev/null); " + "if [ -n \"$raw_speed\" ] && [ \"$raw_speed\" -gt 0 ] 2>/dev/null; then " + "if [ \"$raw_speed\" -ge 1000 ]; then speed=\"$((raw_speed / 1000)) Gbps\"; else speed=\"${raw_speed} Mbps\"; fi; " + "fi; " + "fi; " + "if [ -z \"$speed\" ]; then " + "eth_speed=$(ethtool \"$phys_iface\" 2>/dev/null | sed -n 's/^[ \t]*Speed: //p'); " + "if [ -n \"$eth_speed\" ] && [ \"$eth_speed\" != \"Unknown!\" ]; then speed=\"$eth_speed\"; fi; " + "fi; " + "if [ -z \"$speed\" ]; then " + "speed=$(iwconfig \"$phys_iface\" 2>/dev/null | sed -n 's/.*Bit Rate=\\([0-9.]* [^ ]*\\).*/\\1/p' | head -n1); " + "fi; " + "fi; " + "printf '%s|%s|%s|%s' \"${ip:-Unknown}\" \"${gw:-Unknown}\" \"${speed:-N/A}\" \"${iface:-Unknown}\""]
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let parts = text.trim().split("|");
-                if (parts.length >= 4) {
-                    wifiPopup.dynamicIp = parts[0] || "Unknown";
-                    wifiPopup.dynamicGw = parts[1] || "Unknown";
-                    wifiPopup.dynamicSpeed = parts[2] || "N/A";
-                    wifiPopup.dynamicIface = parts[3] || "Unknown";
-                }
-            }
-        }
-    }
-
-    Component.onCompleted: netStatsProc.running = true
+    readonly property bool hasWifi: NetworkService.hasWifi
+    readonly property bool hasEthernet: NetworkService.hasEthernet
+    readonly property bool ethernetConnected: NetworkService.ethernetConnected
+    readonly property var connectedWifiNetwork: NetworkService.connectedWifiNetwork
 
     implicitWidth: 350
     implicitHeight: wifiPopup.hasWifi ? wifiColumn.implicitHeight + 32 : ethernetColumn.implicitHeight + 32
 
-    function signalIcon(strength) {
-        if (strength >= 0.75)
-            return "󰤨";
-        if (strength >= 0.50)
-            return "󰤥";
-        if (strength >= 0.25)
-            return "󰤢";
-        if (strength > 0.05)
-            return "󰤟";
-        return "󰤯";
-    }
+    Component.onCompleted: NetworkService.refreshStats()
 
-    function signalColor(strength, connected) {
-        if (connected)
-            return Colors.color4;
-        if (strength >= 0.50)
-            return Colors.foreground;
-        return Colors.color8;
-    }
-
-    function sortedNetworks() {
-        let device = wifiPopup.wifiDevice;
-        if (!device || !device.networks)
-            return [];
-        let networks = device.networks.values.slice();
-        networks.sort((a, b) => {
-            if (a.connected && !b.connected)
-                return -1;
-            if (!a.connected && b.connected)
-                return 1;
-            if (a.known && !b.known)
-                return -1;
-            if (!a.known && b.known)
-                return 1;
-            return (b.signalStrength - a.signalStrength);
-        });
-        return networks.slice(0, 8);
-    }
+    // =========================================================
+    // Wi-Fi Mode
+    // =========================================================
 
     Column {
         id: wifiColumn
@@ -124,6 +36,7 @@ Item {
         anchors.margins: 16
         spacing: 14
 
+        // Master Header
         RowLayout {
             width: parent.width
             spacing: 12
@@ -131,15 +44,15 @@ Item {
             Rectangle {
                 width: 44
                 height: 44
-                radius: 22
-                color: Networking.wifiEnabled ? Colors.color4 : pill.cardGlass
+                radius: Theme.roundRadius
+                color: Networking.wifiEnabled ? Colors.color4 : Colors.cardGlass
 
                 Text {
                     anchors.centerIn: parent
-                    text: !Networking.wifiEnabled ? "󰤭" : wifiPopup.connectedWifiNetwork ? wifiPopup.signalIcon(wifiPopup.connectedWifiNetwork.signalStrength) : "󰤭"
+                    text: !Networking.wifiEnabled ? "󰤭" : wifiPopup.connectedWifiNetwork ? NetworkService.signalIcon(wifiPopup.connectedWifiNetwork.signalStrength) : "󰤭"
                     color: Networking.wifiEnabled ? Colors.background : Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 21
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeDisplay
                 }
             }
 
@@ -149,46 +62,25 @@ Item {
                 Text {
                     text: "Wi-Fi"
                     color: Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 15
-                    font.weight: Font.Bold
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeHeader
+                    font.weight: Theme.weightBold
                 }
                 Text {
                     width: parent.width
                     text: !Networking.wifiEnabled ? "Off" : wifiPopup.connectedWifiNetwork ? (wifiPopup.connectedWifiNetwork.name || "Connected") : "Not connected"
                     color: wifiPopup.connectedWifiNetwork ? Colors.color4 : Colors.color8
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 11
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeRegular
                     elide: Text.ElideRight
                 }
             }
 
-            Rectangle {
-                width: 46
-                height: 26
-                radius: 13
-                color: Networking.wifiEnabled ? Colors.color4 : pill.cardGlass
+            ToggleSwitch {
                 Layout.alignment: Qt.AlignVCenter
-
-                Rectangle {
-                    width: 22
-                    height: 22
-                    radius: 11
-                    color: Colors.background
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: Networking.wifiEnabled ? parent.width - width - 2 : 2
-                    Behavior on x {
-                        NumberAnimation {
-                            duration: 220
-                            easing.type: Easing.OutExpo
-                        }
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
+                checked: Networking.wifiEnabled
+                onToggled: checked => {
+                    Networking.wifiEnabled = checked;
                 }
             }
         }
@@ -198,9 +90,9 @@ Item {
             width: parent.width
             height: 38
             implicitHeight: 38
-            radius: 8
-            color: pill.cardGlass
-            border.color: pill.borderGlass
+            radius: Theme.cardRadius
+            color: Colors.cardGlass
+            border.color: Colors.borderGlass
             border.width: 1
             visible: Networking.wifiEnabled && (wifiPopup.connectedWifiNetwork !== null)
 
@@ -209,19 +101,19 @@ Item {
                 anchors.margins: 8
                 spacing: 8
                 Text {
-                    text: "󰩟 " + wifiPopup.dynamicIp
+                    text: "󰩟 " + NetworkService.dynamicIp
                     color: Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 10
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                 }
                 Text {
-                    text: "󰛳 " + wifiPopup.dynamicSpeed
+                    text: "󰛳 " + NetworkService.dynamicSpeed
                     color: Colors.color4
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 10
-                    font.weight: Font.Medium
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Theme.weightMedium
                 }
             }
         }
@@ -235,9 +127,9 @@ Item {
             Text {
                 text: "Connected"
                 color: Colors.color8
-                font.family: "JetBrainsMono Nerd Font Propo"
-                font.pixelSize: 11
-                font.weight: Font.Bold
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeRegular
+                font.weight: Theme.weightBold
             }
 
             Rectangle {
@@ -263,9 +155,9 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                         Text {
                             anchors.centerIn: parent
-                            text: wifiPopup.signalIcon(wifiPopup.connectedWifiNetwork ? wifiPopup.connectedWifiNetwork.signalStrength : 1)
+                            text: NetworkService.signalIcon(wifiPopup.connectedWifiNetwork ? wifiPopup.connectedWifiNetwork.signalStrength : 1)
                             color: Colors.background
-                            font.family: "JetBrainsMono Nerd Font Propo"
+                            font.family: Theme.fontFamily
                             font.pixelSize: 17
                         }
                     }
@@ -277,17 +169,17 @@ Item {
                             width: parent.width
                             text: wifiPopup.connectedWifiNetwork ? (wifiPopup.connectedWifiNetwork.name || "Connected") : "Connected"
                             color: Colors.color4
-                            font.family: "JetBrainsMono Nerd Font Propo"
-                            font.pixelSize: 13
-                            font.weight: Font.Bold
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeTitle
+                            font.weight: Theme.weightBold
                             elide: Text.ElideRight
                         }
                         Text {
                             width: parent.width
-                            text: wifiPopup.connectedWifiNetwork && wifiPopup.connectedWifiNetwork.stateChanging ? "Connecting…" : (wifiPopup.dynamicGw !== "Unknown" ? ("GW: " + wifiPopup.dynamicGw) : "Active connection")
+                            text: wifiPopup.connectedWifiNetwork && wifiPopup.connectedWifiNetwork.stateChanging ? "Connecting…" : (NetworkService.dynamicGw !== "Unknown" ? ("GW: " + NetworkService.dynamicGw) : "Active connection")
                             color: Colors.color8
-                            font.family: "JetBrainsMono Nerd Font Propo"
-                            font.pixelSize: 10
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.fontSizeSmall
                             elide: Text.ElideRight
                         }
                     }
@@ -295,7 +187,7 @@ Item {
                     Text {
                         text: "󰄬"
                         color: Colors.color4
-                        font.family: "JetBrainsMono Nerd Font Propo"
+                        font.family: Theme.fontFamily
                         font.pixelSize: 18
                     }
                 }
@@ -314,35 +206,35 @@ Item {
                 Text {
                     text: "Available Networks"
                     color: Colors.color8
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 11
-                    font.weight: Font.Bold
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeRegular
+                    font.weight: Theme.weightBold
                     Layout.fillWidth: true
                 }
                 Rectangle {
-                    width: wifiPopup.wifiDevice && wifiPopup.wifiDevice.scannerEnabled ? 80 : 62
+                    width: NetworkService.wifiDevice && NetworkService.wifiDevice.scannerEnabled ? 80 : 62
                     height: 24
-                    radius: 6
-                    color: scanMouse.containsMouse ? pill.cardGlass : "transparent"
-                    border.color: pill.borderGlass
+                    radius: Theme.smallRadius
+                    color: scanMouse.containsMouse ? Colors.cardGlass : "transparent"
+                    border.color: Colors.borderGlass
                     border.width: 1
                     Text {
                         anchors.centerIn: parent
-                        text: wifiPopup.wifiDevice && wifiPopup.wifiDevice.scannerEnabled ? "Scanning…" : "Refresh"
-                        color: wifiPopup.wifiDevice && wifiPopup.wifiDevice.scannerEnabled ? Colors.color4 : Colors.foreground
-                        font.family: "JetBrainsMono Nerd Font Propo"
-                        font.pixelSize: 10
+                        text: NetworkService.wifiDevice && NetworkService.wifiDevice.scannerEnabled ? "Scanning…" : "Refresh"
+                        color: NetworkService.wifiDevice && NetworkService.wifiDevice.scannerEnabled ? Colors.color4 : Colors.foreground
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
                     }
                     MouseArea {
                         id: scanMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        enabled: wifiPopup.wifiDevice !== null
+                        enabled: NetworkService.wifiDevice !== null
                         onClicked: {
-                            if (wifiPopup.wifiDevice) {
-                                wifiPopup.wifiDevice.scannerEnabled = !wifiPopup.wifiDevice.scannerEnabled;
-                                netStatsProc.running = true;
+                            if (NetworkService.wifiDevice) {
+                                NetworkService.wifiDevice.scannerEnabled = !NetworkService.wifiDevice.scannerEnabled;
+                                NetworkService.refreshStats();
                             }
                         }
                     }
@@ -354,14 +246,14 @@ Item {
                 spacing: 3
 
                 Repeater {
-                    model: wifiPopup.sortedNetworks()
+                    model: NetworkService.sortedNetworks()
                     delegate: Rectangle {
                         required property var modelData
                         width: parent.width
                         height: 48
                         implicitHeight: 48
                         radius: 9
-                        color: networkMouse.containsMouse ? pill.cardGlass : modelData.connected ? Qt.rgba(Colors.color4.r, Colors.color4.g, Colors.color4.b, 0.08) : "transparent"
+                        color: networkMouse.containsMouse ? Colors.cardGlass : modelData.connected ? Qt.rgba(Colors.color4.r, Colors.color4.g, Colors.color4.b, 0.08) : "transparent"
 
                         RowLayout {
                             anchors.fill: parent
@@ -373,14 +265,14 @@ Item {
                                 width: 30
                                 height: 30
                                 radius: 15
-                                color: modelData.connected ? Colors.color4 : pill.cardGlass
+                                color: modelData.connected ? Colors.color4 : Colors.cardGlass
                                 Layout.alignment: Qt.AlignVCenter
                                 Text {
                                     anchors.centerIn: parent
-                                    text: wifiPopup.signalIcon(modelData.signalStrength)
-                                    color: modelData.connected ? Colors.background : wifiPopup.signalColor(modelData.signalStrength, modelData.connected)
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 15
+                                    text: NetworkService.signalIcon(modelData.signalStrength)
+                                    color: modelData.connected ? Colors.background : NetworkService.signalColor(modelData.signalStrength, modelData.connected)
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeHeader
                                 }
                             }
 
@@ -391,9 +283,9 @@ Item {
                                     width: parent.width
                                     text: modelData.name || "Hidden Network"
                                     color: modelData.connected ? Colors.color4 : Colors.foreground
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 12
-                                    font.weight: modelData.connected ? Font.Bold : Font.Medium
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeBody
+                                    font.weight: modelData.connected ? Theme.weightBold : Theme.weightMedium
                                     elide: Text.ElideRight
                                 }
                                 Row {
@@ -401,15 +293,15 @@ Item {
                                     Text {
                                         text: modelData.connected ? "Connected" : modelData.stateChanging ? "Connecting…" : modelData.known ? "Saved" : "Available"
                                         color: modelData.connected ? Colors.color4 : modelData.stateChanging ? Colors.color4 : Colors.color8
-                                        font.family: "JetBrainsMono Nerd Font Propo"
-                                        font.pixelSize: 9
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: Theme.fontSizeSmallest
                                     }
                                     Text {
                                         visible: modelData.security !== undefined && modelData.security !== WifiSecurityType.Open
                                         text: "• 󰌾"
                                         color: Colors.color8
-                                        font.family: "JetBrainsMono Nerd Font Propo"
-                                        font.pixelSize: 9
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: Theme.fontSizeSmallest
                                     }
                                 }
                             }
@@ -420,16 +312,16 @@ Item {
                                 radius: 7
                                 Layout.alignment: Qt.AlignVCenter
                                 color: networkActionMouse.containsMouse ? (modelData.connected ? Colors.background : Colors.color4) : modelData.connected ? "transparent" : Colors.color4
-                                border.color: modelData.connected ? pill.borderGlass : "transparent"
+                                border.color: modelData.connected ? Colors.borderGlass : "transparent"
                                 border.width: modelData.connected ? 1 : 0
 
                                 Text {
                                     anchors.centerIn: parent
                                     text: modelData.connected ? "Disconnect" : modelData.stateChanging ? "Connecting…" : "Connect"
                                     color: modelData.connected ? Colors.foreground : Colors.background
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 10
-                                    font.weight: Font.Medium
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    font.weight: Theme.weightMedium
                                 }
 
                                 MouseArea {
@@ -469,9 +361,9 @@ Item {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 color: forgetMouse.containsMouse ? Colors.foreground : Colors.color8
-                font.family: "JetBrainsMono Nerd Font Propo"
-                font.pixelSize: 10
-                font.weight: Font.Medium
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                font.weight: Theme.weightMedium
 
                 MouseArea {
                     id: forgetMouse
@@ -487,7 +379,10 @@ Item {
         }
     }
 
-    // Ethernet Column (Wired Mode)
+    // =========================================================
+    // Ethernet Mode (Wired)
+    // =========================================================
+
     Column {
         id: ethernetColumn
         visible: !wifiPopup.hasWifi
@@ -506,12 +401,12 @@ Item {
                 width: 48
                 height: 48
                 radius: 24
-                color: wifiPopup.ethernetConnected ? Colors.color4 : pill.cardGlass
+                color: wifiPopup.ethernetConnected ? Colors.color4 : Colors.cardGlass
                 Text {
                     anchors.centerIn: parent
                     text: wifiPopup.ethernetConnected ? "󰈀" : "󰈂"
                     color: wifiPopup.ethernetConnected ? Colors.background : Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
+                    font.family: Theme.fontFamily
                     font.pixelSize: 22
                 }
             }
@@ -522,15 +417,15 @@ Item {
                 Text {
                     text: "Ethernet"
                     color: Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
+                    font.family: Theme.fontFamily
                     font.pixelSize: 16
-                    font.weight: Font.Bold
+                    font.weight: Theme.weightBold
                 }
                 Text {
                     text: wifiPopup.ethernetConnected ? "Connected" : "Disconnected"
                     color: wifiPopup.ethernetConnected ? Colors.color4 : Colors.color8
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 11
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeRegular
                 }
             }
         }
@@ -539,9 +434,9 @@ Item {
             width: parent.width
             height: ethernetDetailsColumn.implicitHeight + 28
             implicitHeight: ethernetDetailsColumn.implicitHeight + 28
-            radius: 12
-            color: pill.cardGlass
-            border.color: pill.borderGlass
+            radius: Theme.pillRadius
+            color: Colors.cardGlass
+            border.color: Colors.borderGlass
             border.width: 1
 
             Column {
@@ -559,16 +454,16 @@ Item {
                     Text {
                         text: "IP Address"
                         color: Colors.color8
-                        font.family: "JetBrainsMono Nerd Font Propo"
-                        font.pixelSize: 10
-                        font.weight: Font.Bold
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.weight: Theme.weightBold
                         Layout.fillWidth: true
                     }
                     Text {
-                        text: wifiPopup.dynamicIp
+                        text: NetworkService.dynamicIp
                         color: Colors.foreground
-                        font.family: "JetBrainsMono Nerd Font Propo"
-                        font.pixelSize: 12
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeBody
                     }
                 }
 
@@ -576,7 +471,7 @@ Item {
                     width: parent.width
                     height: 1
                     implicitHeight: 1
-                    color: pill.borderGlass
+                    color: Colors.borderGlass
                 }
 
                 RowLayout {
@@ -584,17 +479,17 @@ Item {
                     Text {
                         text: "Link Speed"
                         color: Colors.color8
-                        font.family: "JetBrainsMono Nerd Font Propo"
-                        font.pixelSize: 10
-                        font.weight: Font.Bold
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.weight: Theme.weightBold
                         Layout.fillWidth: true
                     }
                     Text {
-                        text: wifiPopup.dynamicSpeed
+                        text: NetworkService.dynamicSpeed
                         color: Colors.foreground
-                        font.family: "JetBrainsMono Nerd Font Propo"
-                        font.pixelSize: 12
-                        font.weight: Font.Medium
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeBody
+                        font.weight: Theme.weightMedium
                     }
                 }
 
@@ -602,7 +497,7 @@ Item {
                     width: parent.width
                     height: 1
                     implicitHeight: 1
-                    color: pill.borderGlass
+                    color: Colors.borderGlass
                 }
 
                 RowLayout {
@@ -610,16 +505,16 @@ Item {
                     Text {
                         text: "Interface"
                         color: Colors.color8
-                        font.family: "JetBrainsMono Nerd Font Propo"
-                        font.pixelSize: 10
-                        font.weight: Font.Bold
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.weight: Theme.weightBold
                         Layout.fillWidth: true
                     }
                     Text {
-                        text: wifiPopup.dynamicIface
+                        text: NetworkService.dynamicIface
                         color: Colors.foreground
-                        font.family: "JetBrainsMono Nerd Font Propo"
-                        font.pixelSize: 12
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.fontSizeBody
                     }
                 }
             }

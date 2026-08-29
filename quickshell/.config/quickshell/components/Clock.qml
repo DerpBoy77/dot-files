@@ -1,9 +1,9 @@
-import "../"
-
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+
+import "../"
 
 Item {
     id: clock
@@ -15,13 +15,8 @@ Item {
     property bool popupShown: false
     property date currentTime: new Date()
 
-    // Dynamic Glass & Palette Fallbacks
-    readonly property color bgGlass: Colors.bgGlass !== undefined ? Colors.bgGlass : Qt.rgba(Colors.background.r, Colors.background.g, Colors.background.b, 0.70)
-    readonly property color borderGlass: Colors.borderGlass !== undefined ? Colors.borderGlass : Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.16)
-    readonly property color hoverOverlay: Colors.hoverOverlay !== undefined ? Colors.hoverOverlay : Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.08)
-
     readonly property int closedWidth: timeText.implicitWidth + 32
-    readonly property int closedHeight: 32
+    readonly property int closedHeight: Theme.pillHeight
 
     readonly property int expandedWidth: 220
     readonly property int expandedHeight: 112
@@ -59,15 +54,15 @@ Item {
         visible: !clock.expanded
         opacity: clock.expanded ? 0 : 1
 
-        color: clock.bgGlass
-        radius: 12
+        color: Colors.bgGlass
+        radius: Theme.pillRadius
 
-        border.color: clock.borderGlass
+        border.color: Colors.borderGlass
         border.width: 1
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 90
+                duration: Theme.animPillFade
                 easing.type: Easing.OutQuad
             }
         }
@@ -76,11 +71,11 @@ Item {
             anchors.fill: parent
             radius: parent.radius
 
-            color: clockMouse.containsMouse ? clock.hoverOverlay : "transparent"
+            color: clockMouse.containsMouse ? Colors.hoverOverlay : "transparent"
 
             Behavior on color {
                 ColorAnimation {
-                    duration: 120
+                    duration: Theme.animHover
                     easing.type: Easing.OutQuad
                 }
             }
@@ -95,9 +90,9 @@ Item {
 
             color: Colors.foreground
 
-            font.family: "JetBrainsMono Nerd Font Propo"
-            font.pixelSize: 13
-            font.weight: Font.Bold
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.fontSizeTitle
+            font.weight: Theme.weightBold
 
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -154,14 +149,13 @@ Item {
 
             width: clock.expanded ? clock.expandedWidth : clock.closedWidth
             height: clock.expanded ? clock.expandedHeight : clock.closedHeight
-            radius: clock.expanded ? 18 : 12
+            radius: clock.expanded ? Theme.islandRadius : Theme.pillRadius
 
-            color: clock.bgGlass
-            border.color: clock.borderGlass
+            color: Colors.bgGlass
+            border.color: Colors.borderGlass
             border.width: 1
 
             clip: true
-
             focus: true
 
             Keys.onEscapePressed: {
@@ -170,21 +164,21 @@ Item {
 
             Behavior on width {
                 NumberAnimation {
-                    duration: 300
+                    duration: Theme.animIslandWidth
                     easing.type: Easing.OutCubic
                 }
             }
 
             Behavior on height {
                 NumberAnimation {
-                    duration: 340
+                    duration: Theme.animIslandHeight
                     easing.type: Easing.OutCubic
                 }
             }
 
             Behavior on radius {
                 NumberAnimation {
-                    duration: 260
+                    duration: Theme.animIslandRadius
                     easing.type: Easing.OutCubic
                 }
             }
@@ -207,16 +201,16 @@ Item {
 
                 color: Colors.foreground
 
-                font.family: "JetBrainsMono Nerd Font Propo"
-                font.pixelSize: 13
-                font.weight: Font.Bold
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeTitle
+                font.weight: Theme.weightBold
 
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
 
                 Behavior on y {
                     NumberAnimation {
-                        duration: 280
+                        duration: Theme.animContentY
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -236,20 +230,19 @@ Item {
                 width: clock.expanded ? parent.width - 32 : 0
                 height: 1
 
-                color: clock.borderGlass
-
+                color: Colors.borderGlass
                 opacity: clock.expanded ? 1 : 0
 
                 Behavior on width {
                     NumberAnimation {
-                        duration: 240
+                        duration: Theme.animDividerWidth
                         easing.type: Easing.OutCubic
                     }
                 }
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 140
+                        duration: Theme.animDividerFade
                         easing.type: Easing.OutQuad
                     }
                 }
@@ -277,9 +270,9 @@ Item {
                     text: Qt.formatDateTime(clock.currentTime, "dddd")
                     color: Colors.color4
 
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 18
-                    font.weight: Font.Bold
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeLarge
+                    font.weight: Theme.weightBold
 
                     horizontalAlignment: Text.AlignHCenter
                 }
@@ -289,24 +282,24 @@ Item {
                     text: Qt.formatDateTime(clock.currentTime, "MMMM d, yyyy")
                     color: Colors.foreground
 
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 13
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeTitle
 
                     horizontalAlignment: Text.AlignHCenter
                 }
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 150
+                        duration: Theme.animContentFade
                         easing.type: Easing.OutQuad
                     }
                 }
 
                 Behavior on scale {
                     NumberAnimation {
-                        duration: 260
+                        duration: Theme.animContentScale
                         easing.type: Easing.OutBack
-                        easing.overshoot: 1.05
+                        easing.overshoot: Theme.animContentScaleOvershoot
                     }
                 }
             }
@@ -376,7 +369,7 @@ Item {
 
     Timer {
         id: closeTimer
-        interval: 350
+        interval: Theme.closeDelay
         repeat: false
 
         onTriggered: {

@@ -1,71 +1,20 @@
-import "../../"
-
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Bluetooth
+
+import "../../"
+import "../../services"
+import "../../widgets"
 
 Item {
     id: bluetoothPopup
 
     required property var pill
 
-    readonly property var adapter: Bluetooth.defaultAdapter
+    readonly property var adapter: BluetoothService.adapter
 
     implicitWidth: 350
     implicitHeight: bluetoothColumn.implicitHeight + 32
-
-    function deviceName(device) {
-        if (!device)
-            return "Unknown Device";
-        return device.name || device.deviceName || device.alias || device.address || "Unknown Device";
-    }
-
-    function deviceStatus(device) {
-        if (!device)
-            return "Unknown";
-        if (device.connected)
-            return "Connected";
-        if (device.pairing)
-            return "Pairing…";
-        if (device.paired)
-            return "Paired";
-        return "Available";
-    }
-
-    function sortedDevices() {
-        if (!Bluetooth.devices)
-            return [];
-        let devices = Bluetooth.devices.values.slice();
-        devices.sort((a, b) => {
-            if (a.connected && !b.connected)
-                return -1;
-            if (!a.connected && b.connected)
-                return 1;
-            if (a.paired && !b.paired)
-                return -1;
-            if (!a.paired && b.paired)
-                return 1;
-            return ((a.name || "").localeCompare(b.name || ""));
-        });
-        return devices.slice(0, 10);
-    }
-
-    function deviceIcon(device) {
-        if (!device)
-            return "󰂯";
-        let icon = (device.icon || "").toLowerCase();
-        let name = (device.name || "").toLowerCase();
-        if (icon.includes("headset") || icon.includes("audio") || name.includes("buds") || name.includes("headphone") || name.includes("wh-") || name.includes("airpod")) {
-            return "󰋋";
-        }
-        if (icon.includes("keyboard") || name.includes("keyboard"))
-            return "󰌌";
-        if (icon.includes("mouse") || name.includes("mouse") || name.includes("touchpad"))
-            return "󰍽";
-        if (icon.includes("phone") || name.includes("phone"))
-            return "󰄜";
-        return device.connected ? "󰂱" : "󰂯";
-    }
 
     Column {
         id: bluetoothColumn
@@ -77,6 +26,10 @@ Item {
         anchors.margins: 16
         spacing: 14
 
+        // =====================================================
+        // Master Header
+        // =====================================================
+
         RowLayout {
             width: parent.width
             spacing: 12
@@ -84,15 +37,15 @@ Item {
             Rectangle {
                 width: 44
                 height: 44
-                radius: 22
-                color: bluetoothPopup.adapter && bluetoothPopup.adapter.enabled ? Colors.color4 : pill.cardGlass
+                radius: Theme.roundRadius
+                color: BluetoothService.powered ? Colors.color4 : Colors.cardGlass
 
                 Text {
                     anchors.centerIn: parent
-                    text: bluetoothPopup.adapter && bluetoothPopup.adapter.enabled ? "󰂯" : "󰂲"
-                    color: bluetoothPopup.adapter && bluetoothPopup.adapter.enabled ? Colors.background : Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 21
+                    text: BluetoothService.powered ? "󰂯" : "󰂲"
+                    color: BluetoothService.powered ? Colors.background : Colors.foreground
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeDisplay
                 }
             }
 
@@ -102,46 +55,23 @@ Item {
                 Text {
                     text: "Bluetooth"
                     color: Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 15
-                    font.weight: Font.Bold
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeHeader
+                    font.weight: Theme.weightBold
                 }
                 Text {
-                    text: !bluetoothPopup.adapter ? "Unavailable" : bluetoothPopup.adapter.enabled ? (bluetoothPopup.adapter.discovering ? "Scanning…" : "On") : "Off"
-                    color: bluetoothPopup.adapter && bluetoothPopup.adapter.enabled && bluetoothPopup.adapter.discovering ? Colors.color4 : Colors.color8
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 11
+                    text: !bluetoothPopup.adapter ? "Unavailable" : BluetoothService.powered ? (BluetoothService.discovering ? "Scanning…" : "On") : "Off"
+                    color: BluetoothService.powered && BluetoothService.discovering ? Colors.color4 : Colors.color8
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeRegular
                 }
             }
 
-            Rectangle {
-                width: 46
-                height: 26
-                radius: 13
-                color: bluetoothPopup.adapter && bluetoothPopup.adapter.enabled ? Colors.color4 : pill.cardGlass
+            ToggleSwitch {
                 Layout.alignment: Qt.AlignVCenter
-
-                Rectangle {
-                    width: 22
-                    height: 22
-                    radius: 11
-                    color: Colors.background
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: bluetoothPopup.adapter && bluetoothPopup.adapter.enabled ? parent.width - width - 2 : 2
-                    Behavior on x {
-                        NumberAnimation {
-                            duration: 220
-                            easing.type: Easing.OutExpo
-                        }
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    enabled: bluetoothPopup.adapter !== null
-                    onClicked: bluetoothPopup.adapter.enabled = !bluetoothPopup.adapter.enabled
-                }
+                checked: BluetoothService.powered
+                enabled: bluetoothPopup.adapter !== null
+                onToggled: BluetoothService.togglePower()
             }
         }
 
@@ -149,8 +79,12 @@ Item {
             width: parent.width
             height: 1
             implicitHeight: 1
-            color: pill.borderGlass
+            color: Colors.borderGlass
         }
+
+        // =====================================================
+        // Devices Header & Scan Action
+        // =====================================================
 
         RowLayout {
             width: parent.width
@@ -158,27 +92,27 @@ Item {
             Text {
                 text: "Devices"
                 color: Colors.color8
-                font.family: "JetBrainsMono Nerd Font Propo"
-                font.pixelSize: 11
-                font.weight: Font.Bold
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSizeRegular
+                font.weight: Theme.weightBold
                 Layout.fillWidth: true
             }
 
             Rectangle {
-                width: (bluetoothPopup.adapter && bluetoothPopup.adapter.discovering) ? 76 : 60
+                width: BluetoothService.discovering ? 76 : 60
                 height: 24
-                radius: 6
-                visible: bluetoothPopup.adapter && bluetoothPopup.adapter.enabled
-                color: scanBtMouse.containsMouse ? pill.cardGlass : "transparent"
-                border.color: pill.borderGlass
+                radius: Theme.smallRadius
+                visible: BluetoothService.powered
+                color: scanBtMouse.containsMouse ? Colors.cardGlass : "transparent"
+                border.color: Colors.borderGlass
                 border.width: 1
 
                 Text {
                     anchors.centerIn: parent
-                    text: (bluetoothPopup.adapter && bluetoothPopup.adapter.discovering) ? "Scanning…" : "Scan"
-                    color: (bluetoothPopup.adapter && bluetoothPopup.adapter.discovering) ? Colors.color4 : Colors.foreground
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 10
+                    text: BluetoothService.discovering ? "Scanning…" : "Scan"
+                    color: BluetoothService.discovering ? Colors.color4 : Colors.foreground
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeSmall
                 }
 
                 MouseArea {
@@ -186,20 +120,21 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (bluetoothPopup.adapter)
-                            bluetoothPopup.adapter.discovering = !bluetoothPopup.adapter.discovering;
-                    }
+                    onClicked: BluetoothService.toggleDiscovery()
                 }
             }
         }
+
+        // =====================================================
+        // Devices List
+        // =====================================================
 
         Column {
             width: parent.width
             spacing: 4
 
             Repeater {
-                model: bluetoothPopup.sortedDevices()
+                model: BluetoothService.sortedDevices()
                 delegate: Rectangle {
                     id: deviceRow
                     required property var modelData
@@ -207,7 +142,7 @@ Item {
                     height: 48
                     implicitHeight: 48
                     radius: 9
-                    color: deviceMouse.containsMouse ? pill.cardGlass : modelData.connected ? Qt.rgba(Colors.color4.r, Colors.color4.g, Colors.color4.b, 0.10) : "transparent"
+                    color: deviceMouse.containsMouse ? Colors.cardGlass : modelData.connected ? Qt.rgba(Colors.color4.r, Colors.color4.g, Colors.color4.b, 0.10) : "transparent"
 
                     RowLayout {
                         anchors.fill: parent
@@ -219,14 +154,14 @@ Item {
                             width: 30
                             height: 30
                             radius: 15
-                            color: modelData.connected ? Colors.color4 : pill.cardGlass
+                            color: modelData.connected ? Colors.color4 : Colors.cardGlass
                             Layout.alignment: Qt.AlignVCenter
                             Text {
                                 anchors.centerIn: parent
-                                text: bluetoothPopup.deviceIcon(modelData)
+                                text: BluetoothService.deviceIcon(modelData)
                                 color: modelData.connected ? Colors.background : Colors.color8
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 15
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeHeader
                             }
                         }
 
@@ -235,27 +170,27 @@ Item {
                             Layout.alignment: Qt.AlignVCenter
                             Text {
                                 width: parent.width
-                                text: bluetoothPopup.deviceName(modelData)
+                                text: BluetoothService.deviceName(modelData)
                                 color: modelData.connected ? Colors.color4 : Colors.foreground
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 12
-                                font.weight: Font.Medium
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeBody
+                                font.weight: Theme.weightMedium
                                 elide: Text.ElideRight
                             }
                             Row {
                                 spacing: 6
                                 Text {
-                                    text: bluetoothPopup.deviceStatus(modelData)
+                                    text: BluetoothService.deviceStatus(modelData)
                                     color: modelData.connected ? Colors.color4 : Colors.color8
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 10
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeSmall
                                 }
                                 Text {
                                     visible: modelData.connected && modelData.batteryAvailable
                                     text: "• 󰥉 " + Math.round((modelData.battery || 0) * 100) + "%"
                                     color: Colors.color8
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 10
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: Theme.fontSizeSmall
                                 }
                             }
                         }
@@ -266,7 +201,7 @@ Item {
                             height: 28
                             radius: 7
                             color: actionMouse.containsMouse ? (modelData.connected ? Colors.background : Colors.color4) : modelData.connected ? "transparent" : Colors.color4
-                            border.color: modelData.connected ? pill.borderGlass : "transparent"
+                            border.color: modelData.connected ? Colors.borderGlass : "transparent"
                             border.width: modelData.connected ? 1 : 0
                             Layout.alignment: Qt.AlignVCenter
 
@@ -274,9 +209,9 @@ Item {
                                 anchors.centerIn: parent
                                 text: modelData.connected ? "Disconnect" : modelData.pairing ? "Pairing…" : modelData.paired ? "Connect" : "Pair"
                                 color: modelData.connected ? Colors.foreground : Colors.background
-                                font.family: "JetBrainsMono Nerd Font Propo"
-                                font.pixelSize: 10
-                                font.weight: Font.Medium
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Theme.weightMedium
                             }
 
                             MouseArea {
@@ -308,12 +243,16 @@ Item {
             }
         }
 
+        // =====================================================
+        // Empty State
+        // =====================================================
+
         Rectangle {
             width: parent.width
             height: 70
             implicitHeight: 70
             radius: 10
-            color: pill.cardGlass
+            color: Colors.cardGlass
             visible: !Bluetooth.devices || Bluetooth.devices.values.length === 0
 
             Column {
@@ -323,15 +262,15 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: "󰂲"
                     color: Colors.color8
-                    font.family: "JetBrainsMono Nerd Font Propo"
+                    font.family: Theme.fontFamily
                     font.pixelSize: 20
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: bluetoothPopup.adapter && bluetoothPopup.adapter.enabled ? "No devices found" : "Bluetooth is off"
+                    text: BluetoothService.powered ? "No devices found" : "Bluetooth is off"
                     color: Colors.color8
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 11
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSizeRegular
                 }
             }
         }
