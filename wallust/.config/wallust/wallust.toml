@@ -9,7 +9,6 @@ check_contrast = true
 
 # Templates configuration
 [templates]
-colors-mako = { template = "colors-mako", target = "~/.cache/wallust/colors-mako" }
 colors-waybar = { template = "colors-waybar.css", target = "~/.cache/wallust/colors-waybar.css" }
 colors-rofi = { template = "colors-rofi.rasi", target = "~/.cache/wallust/colors-rofi.rasi" }
 colors-kitty = { template = "colors-kitty.conf", target = "~/.cache/wallust/colors-kitty.conf" }
