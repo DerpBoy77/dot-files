@@ -1,5 +1,6 @@
 //@ pragma UseQApplication
 //@ pragma IconTheme Papirus-Dark
+
 import "./components"
 
 import QtQuick
@@ -7,50 +8,63 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 
-PanelWindow {
-    id: root
+ShellRoot {
+    // =========================================================
+    // DYNAMIC TOP BAR (Survives DPMS on/off & Hotplugs)
+    // =========================================================
 
-    implicitHeight: 48
+    Variants {
+        model: Quickshell.screens
 
-    color: "transparent"
+        delegate: Component {
+            PanelWindow {
+                id: barWindow
 
-    exclusiveZone: 32
+                // Dynamically binds to active output on wake-up
+                required property var modelData
+                screen: modelData
 
-    margins {
-        top: 0
-        left: 12
-        right: 12
-        bottom: 0
-    }
+                implicitHeight: 48
+                color: "transparent"
+                exclusiveZone: 32
 
-    anchors {
-        top: true
-        left: true
-        right: true
-    }
+                margins {
+                    top: 0
+                    left: 12
+                    right: 12
+                    bottom: 0
+                }
 
-    Workspaces {
-        anchors {
-            left: parent.left
-            verticalCenter: parent.verticalCenter
-        }
-    }
+                anchors {
+                    top: true
+                    left: true
+                    right: true
+                }
 
-    Clock {
-        id: clock
+                Workspaces {
+                    anchors {
+                        left: parent.left
+                        verticalCenter: parent.verticalCenter
+                    }
+                }
 
-        barWindow: root
+                Clock {
+                    id: clock
+                    barWindow: barWindow
 
-        anchors {
-            horizontalCenter: parent.horizontalCenter
-            verticalCenter: parent.verticalCenter
-        }
-    }
+                    anchors {
+                        horizontalCenter: parent.horizontalCenter
+                        verticalCenter: parent.verticalCenter
+                    }
+                }
 
-    SystemPill {
-        anchors {
-            right: parent.right
-            verticalCenter: parent.verticalCenter
+                SystemPill {
+                    anchors {
+                        right: parent.right
+                        verticalCenter: parent.verticalCenter
+                    }
+                }
+            }
         }
     }
 }
