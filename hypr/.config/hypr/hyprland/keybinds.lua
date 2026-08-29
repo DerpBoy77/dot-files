@@ -73,11 +73,11 @@ hl.bind("XF86AudioMute", function()
 
     -- Send a notification so you know which mode is active
     if wheel_mode == 0 then
-        hl.dispatch(hl.dsp.exec_cmd("notify-send -t 1500 'Wheel Mode' 'Volume'"))
+        hl.dispatch(hl.dsp.exec_cmd("notify-send -i audio-volume-high -t 1500 'Wheel Mode' 'Volume'"))
     elseif wheel_mode == 1 then
-        hl.dispatch(hl.dsp.exec_cmd("notify-send -t 1500 'Wheel Mode' 'Mouse Scrolling'"))
+        hl.dispatch(hl.dsp.exec_cmd("notify-send -i input-mouse -t 1500 'Wheel Mode' 'Mouse Scrolling'"))
     elseif wheel_mode == 2 then
-        hl.dispatch(hl.dsp.exec_cmd("notify-send -t 1500 'Wheel Mode' 'Window Switching'"))
+        hl.dispatch(hl.dsp.exec_cmd("notify-send -i preferences-system-windows -t 1500 'Wheel Mode' 'Window Switching'"))
     end
 end, { locked = true })
 

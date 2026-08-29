@@ -37,13 +37,13 @@ Item {
                 width: 44
                 height: 44
                 radius: Theme.roundRadius
-                color: AudioService.outputAvailable && !AudioService.outputMuted() ? Colors.color4 : Colors.cardGlass
+                color: AudioService.outputAvailable && !AudioService.outputMuted ? Colors.color4 : Colors.cardGlass
                 Layout.alignment: Qt.AlignVCenter
 
                 Text {
                     anchors.centerIn: parent
-                    text: AudioService.outputIcon()
-                    color: AudioService.outputAvailable && !AudioService.outputMuted() ? Colors.background : Colors.foreground
+                    text: AudioService.outputIcon
+                    color: AudioService.outputAvailable && !AudioService.outputMuted ? Colors.background : Colors.foreground
                     font.family: Theme.fontFamily
                     font.pixelSize: 20
                 }
@@ -55,7 +55,7 @@ Item {
 
                 Text {
                     width: parent.width
-                    text: AudioService.outputAvailable ? AudioService.outputName() : "Audio Output"
+                    text: AudioService.outputAvailable ? AudioService.outputName : "Audio Output"
                     color: Colors.foreground
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSubtitle
@@ -64,8 +64,8 @@ Item {
                 }
 
                 Text {
-                    text: !AudioService.outputAvailable ? "No output device" : AudioService.outputMuted() ? "Muted" : Math.round(AudioService.outputVolume() * 100) + "% Volume"
-                    color: AudioService.outputAvailable && !AudioService.outputMuted() ? Colors.color4 : Colors.color8
+                    text: !AudioService.outputAvailable ? "No output device" : AudioService.outputMuted ? "Muted" : Math.round(AudioService.outputVolume * 100) + "% Volume"
+                    color: AudioService.outputAvailable && !AudioService.outputMuted ? Colors.color4 : Colors.color8
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeRegular
                 }
@@ -75,15 +75,15 @@ Item {
                 width: 36
                 height: 36
                 radius: 18
-                color: AudioService.outputMuted() ? Qt.rgba(Colors.color1.r, Colors.color1.g, Colors.color1.b, 0.15) : Colors.cardGlass
-                border.color: AudioService.outputMuted() ? Colors.color1 : Colors.borderGlass
+                color: AudioService.outputMuted ? Qt.rgba(Colors.color1.r, Colors.color1.g, Colors.color1.b, 0.15) : Colors.cardGlass
+                border.color: AudioService.outputMuted ? Colors.color1 : Colors.borderGlass
                 border.width: 1
                 Layout.alignment: Qt.AlignVCenter
 
                 Text {
                     anchors.centerIn: parent
-                    text: AudioService.outputMuted() ? "󰝟" : "󰕾"
-                    color: AudioService.outputMuted() ? Colors.color1 : Colors.color4
+                    text: AudioService.outputMuted ? "󰝟" : "󰕾"
+                    color: AudioService.outputMuted ? Colors.color1 : Colors.color4
                     font.family: Theme.fontFamily
                     font.pixelSize: 16
                 }
@@ -116,8 +116,8 @@ Item {
                     Layout.fillWidth: true
                 }
                 Text {
-                    text: AudioService.outputMuted() ? "Muted" : (Math.round(AudioService.outputVolume() * 100) + "%")
-                    color: AudioService.outputMuted() ? Colors.color8 : Colors.color4
+                    text: AudioService.outputMuted ? "Muted" : (Math.round(AudioService.outputVolume * 100) + "%")
+                    color: AudioService.outputMuted ? Colors.color8 : Colors.color4
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeRegular
                     font.weight: Theme.weightBold
@@ -126,8 +126,8 @@ Item {
 
             SliderTrack {
                 width: parent.width
-                value: AudioService.outputVolume()
-                muted: AudioService.outputMuted()
+                value: AudioService.outputVolume
+                muted: AudioService.outputMuted
                 enabled: AudioService.outputAvailable
                 onMoved: val => AudioService.setOutputVolume(val)
             }
@@ -152,7 +152,7 @@ Item {
                 width: parent.width
                 spacing: 8
                 Text {
-                    text: "Input (" + AudioService.inputName() + ")"
+                    text: "Input (" + AudioService.inputName + ")"
                     color: Colors.color8
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeRegular
@@ -161,8 +161,8 @@ Item {
                     elide: Text.ElideRight
                 }
                 Text {
-                    text: AudioService.inputMuted() ? "Muted" : (Math.round(AudioService.inputVolume() * 100) + "%")
-                    color: AudioService.inputMuted() ? Colors.color8 : Colors.color4
+                    text: AudioService.inputMuted ? "Muted" : (Math.round(AudioService.inputVolume * 100) + "%")
+                    color: AudioService.inputMuted ? Colors.color8 : Colors.color4
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeRegular
                     font.weight: Theme.weightBold
@@ -172,14 +172,14 @@ Item {
                     width: 24
                     height: 24
                     radius: 12
-                    color: AudioService.inputMuted() ? Qt.rgba(Colors.color1.r, Colors.color1.g, Colors.color1.b, 0.15) : Colors.cardGlass
-                    border.color: AudioService.inputMuted() ? Colors.color1 : "transparent"
+                    color: AudioService.inputMuted ? Qt.rgba(Colors.color1.r, Colors.color1.g, Colors.color1.b, 0.15) : Colors.cardGlass
+                    border.color: AudioService.inputMuted ? Colors.color1 : "transparent"
                     border.width: 1
 
                     Text {
                         anchors.centerIn: parent
-                        text: AudioService.inputIcon()
-                        color: AudioService.inputMuted() ? Colors.color1 : Colors.color4
+                        text: AudioService.inputIcon
+                        color: AudioService.inputMuted ? Colors.color1 : Colors.color4
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeBody
                     }
@@ -194,8 +194,8 @@ Item {
 
             SliderTrack {
                 width: parent.width
-                value: AudioService.inputVolume()
-                muted: AudioService.inputMuted()
+                value: AudioService.inputVolume
+                muted: AudioService.inputMuted
                 enabled: true
                 onMoved: val => AudioService.setInputVolume(val)
             }

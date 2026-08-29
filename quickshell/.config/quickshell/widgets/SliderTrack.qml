@@ -23,20 +23,28 @@ Item {
         id: track
         x: 6
         anchors.verticalCenter: parent.verticalCenter
-        width: parent.width - 12
+        width: Math.max(1, parent.width - 12)
         height: root.trackHeight
         radius: root.trackHeight / 2
         color: root.trackColor
 
         Rectangle {
             id: fill
-            width: track.width * Math.max(0, Math.min(1.0, root.value))
+            width: Math.max(0, Math.min(track.width, track.width * Math.max(0, Math.min(1.0, root.value))))
             height: track.height
             radius: track.radius
             color: root.fillColor
 
             Behavior on color {
                 ColorAnimation {
+                    duration: Theme.animHover
+                    easing.type: Easing.OutQuad
+                }
+            }
+
+            Behavior on width {
+                enabled: !sliderMouse.pressed
+                NumberAnimation {
                     duration: Theme.animHover
                     easing.type: Easing.OutQuad
                 }
@@ -53,17 +61,27 @@ Item {
             border.width: 2
             anchors.verticalCenter: parent.verticalCenter
             x: Math.max(0, Math.min(track.width - width, (track.width * Math.max(0, Math.min(1.0, root.value))) - width / 2))
+
+            Behavior on x {
+                enabled: !sliderMouse.pressed
+                NumberAnimation {
+                    duration: Theme.animHover
+                    easing.type: Easing.OutQuad
+                }
+            }
         }
     }
 
     MouseArea {
+        id: sliderMouse
         anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
+        cursorShape: root.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         enabled: root.enabled
         preventStealing: true
 
         function updateFromMouse(mouseX) {
-            let val = Math.max(0, Math.min(1.0, (mouseX - track.x) / track.width));
+            let availableWidth = Math.max(1, track.width);
+            let val = Math.max(0, Math.min(1.0, (mouseX - track.x) / availableWidth));
             root.moved(val);
         }
 

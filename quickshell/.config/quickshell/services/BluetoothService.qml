@@ -45,6 +45,12 @@ QtObject {
         return devices.slice(0, 10);
     }
 
+    readonly property var sortedDeviceList: {
+        if (!Bluetooth.devices)
+            return [];
+        return sortedDevices();
+    }
+
     function deviceIcon(device) {
         if (!device)
             return "󰂯";

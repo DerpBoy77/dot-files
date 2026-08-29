@@ -17,6 +17,57 @@ QtObject {
     readonly property bool outputAvailable: output !== null
     readonly property bool inputAvailable: input !== null
 
+    // =========================================================
+    // Reactive Properties
+    // =========================================================
+
+    readonly property real outputVolume: {
+        if (!outputAudio || outputAudio.volume === undefined)
+            return 0;
+        let volume = Number(outputAudio.volume);
+        return isNaN(volume) ? 0 : Math.max(0, Math.min(1.0, volume));
+    }
+
+    readonly property real inputVolume: {
+        if (inputAudio && inputAudio.volume !== undefined && !isNaN(Number(inputAudio.volume))) {
+            return Math.max(0, Math.min(1.0, Number(inputAudio.volume)));
+        }
+        return fallbackInputVolume;
+    }
+
+    readonly property bool outputMuted: outputAudio ? !!outputAudio.muted : false
+
+    readonly property bool inputMuted: {
+        if (inputAudio && inputAudio.muted !== undefined)
+            return !!inputAudio.muted;
+        return fallbackInputMuted;
+    }
+
+    readonly property string outputIcon: {
+        if (!outputAudio)
+            return "󰕾";
+        if (outputAudio.muted)
+            return "󰝟";
+        let vol = root.outputVolume;
+        if (vol <= 0.01)
+            return "󰝟";
+        if (vol < 0.33)
+            return "󰕿";
+        if (vol < 0.66)
+            return "󰖀";
+        return "󰕾";
+    }
+
+    readonly property string inputIcon: root.inputMuted ? "󰍭" : "󰍬"
+
+    readonly property string outputName: output ? (output.description || output.nickname || output.name || "Speakers") : "No Output"
+
+    readonly property string inputName: input ? (input.description || input.nickname || input.name || "Microphone") : "No Microphone"
+
+    // =========================================================
+    // Node Tracking
+    // =========================================================
+
     readonly property var sinkNodes: {
         if (!Pipewire.nodes)
             return [];
@@ -49,6 +100,10 @@ QtObject {
     property var tracker: PwObjectTracker {
         objects: [root.output, root.input, ...root.sinkNodes, ...root.mixerStreams].filter(Boolean)
     }
+
+    // =========================================================
+    // Fallback Shell Processes
+    // =========================================================
 
     property var wpctlGetSourceProc: Process {
         command: ["sh", "-c", "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null"]
@@ -95,60 +150,6 @@ QtObject {
                 return properties["node.description"];
         }
         return (node.description || node.nickname || node.name || "Unknown Application");
-    }
-
-    function outputVolume() {
-        let audio = outputAudio;
-        if (!audio)
-            return 0;
-        let volume = Number(audio.volume);
-        return isNaN(volume) ? 0 : Math.max(0, Math.min(1.0, volume));
-    }
-
-    function inputVolume() {
-        let audio = inputAudio;
-        if (audio && audio.volume !== undefined && !isNaN(Number(audio.volume))) {
-            return Math.max(0, Math.min(1.0, Number(audio.volume)));
-        }
-        return fallbackInputVolume;
-    }
-
-    function outputMuted() {
-        return outputAudio ? !!outputAudio.muted : false;
-    }
-
-    function inputMuted() {
-        if (inputAudio && inputAudio.muted !== undefined)
-            return !!inputAudio.muted;
-        return fallbackInputMuted;
-    }
-
-    function outputIcon() {
-        let audio = outputAudio;
-        if (!audio)
-            return "󰕾";
-        if (audio.muted)
-            return "󰝟";
-        let volume = Number(audio.volume) || 0;
-        if (volume <= 0.01)
-            return "󰝟";
-        if (volume < 0.33)
-            return "󰕿";
-        if (volume < 0.66)
-            return "󰖀";
-        return "󰕾";
-    }
-
-    function inputIcon() {
-        return inputMuted() ? "󰍭" : "󰍬";
-    }
-
-    function outputName() {
-        return output ? (output.description || output.nickname || output.name || "Speakers") : "No Output";
-    }
-
-    function inputName() {
-        return input ? (input.description || input.nickname || input.name || "Microphone") : "No Microphone";
     }
 
     function setOutputVolume(value) {

@@ -81,6 +81,7 @@ QtObject {
     // Timers
     // =========================================================
 
+    // Expiration Timer: ticks while active and unhovered
     property var expiryTimer: Timer {
         interval: 200
         repeat: true
@@ -91,6 +92,7 @@ QtObject {
         }
     }
 
+    // Progress Bar Ticker: increments notificationTick to re-evaluate remainingProgress
     property var progressTimer: Timer {
         interval: 40
         repeat: true
@@ -98,6 +100,19 @@ QtObject {
 
         onTriggered: {
             root.notificationTick++;
+        }
+    }
+
+    // Hover Pause Extension: extends expiresAt while hovered so user retains full remaining time on exit
+    property var hoverExtendTimer: Timer {
+        interval: 100
+        repeat: true
+        running: root.activeNotifications.length > 0 && root.isNotificationHovered
+
+        onTriggered: {
+            for (let item of root.activeNotifications) {
+                item.expiresAt += 100;
+            }
         }
     }
 
@@ -109,29 +124,64 @@ QtObject {
         if (!notif)
             return;
 
-        const timeout = notif.urgency === NotificationUrgency.Critical ? 10000 : (notif.expireTimeout > 0 ? Math.round(notif.expireTimeout * 1000) : 5500);
+        let rawTimeout = notif.expireTimeout;
+        let timeout = 5500;
+
+        if (notif.urgency === NotificationUrgency.Critical) {
+            timeout = 10000;
+        } else if (rawTimeout > 0) {
+            // If rawTimeout < 100 it is in seconds, if >= 100 it is already in milliseconds
+            timeout = rawTimeout < 100 ? Math.round(rawTimeout * 1000) : Math.round(rawTimeout);
+        }
+
         const id = notif.id || (Date.now() + Math.random());
         const now = Date.now();
+        const appName = notif.appName || "";
+        const summary = notif.summary || "";
+        const body = notif.body || "";
+        const appIcon = notif.appIcon || "";
+        const desktopEntry = notif.desktopEntry || "";
+        const image = notif.image || "";
+        const urgency = notif.urgency;
 
         const item = {
             id: id,
             obj: notif,
-            appName: notif.appName || "",
-            summary: notif.summary || "",
-            body: notif.body || "",
-            appIcon: notif.appIcon || "",
-            desktopEntry: notif.desktopEntry || "",
-            image: notif.image || "",
-            urgency: notif.urgency,
+            appName: appName,
+            summary: summary,
+            body: body,
+            appIcon: appIcon,
+            desktopEntry: desktopEntry,
+            image: image,
+            urgency: urgency,
             timeout: timeout,
             expiresAt: now + timeout
         };
 
-        let next = [item];
-        for (let old of activeNotifications) {
+        // Check if there is an existing notification with the same summary & appName (e.g. status toggles like Wheel Mode) or same ID
+        let existingIndex = activeNotifications.findIndex(old => {
             if (old.id === id)
-                continue;
-            next.push(old);
+                return true;
+            if (appName !== "" && summary !== "" && old.appName === appName && old.summary === summary)
+                return true;
+            return false;
+        });
+
+        let next = [];
+        if (existingIndex !== -1) {
+            // Update in-place to prevent duplicate card spam and reset countdown
+            for (let i = 0; i < activeNotifications.length; i++) {
+                if (i === existingIndex) {
+                    next.push(item);
+                } else {
+                    next.push(activeNotifications[i]);
+                }
+            }
+        } else {
+            next = [item];
+            for (let old of activeNotifications) {
+                next.push(old);
+            }
         }
 
         activeNotifications = next;
@@ -139,8 +189,10 @@ QtObject {
     }
 
     function expireDueNotifications() {
-        if (activeNotifications.length === 0)
+        if (activeNotifications.length === 0) {
+            expiryTimer.stop();
             return;
+        }
 
         if (isNotificationHovered)
             return;
@@ -163,6 +215,10 @@ QtObject {
 
         if (changed) {
             activeNotifications = next;
+            if (next.length === 0) {
+                expiryTimer.stop();
+                allDismissed();
+            }
         }
     }
 
@@ -176,6 +232,7 @@ QtObject {
 
         activeNotifications = activeNotifications.filter(n => n.id !== id);
         if (activeNotifications.length === 0) {
+            expiryTimer.stop();
             allDismissed();
         }
     }
@@ -187,6 +244,7 @@ QtObject {
         }
 
         activeNotifications = [];
+        expiryTimer.stop();
         allDismissed();
     }
 }

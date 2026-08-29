@@ -51,7 +51,7 @@ Rectangle {
 
     signal popupOpened
 
-    // Reactive listener for incoming notifications
+    // Reactive listener for incoming & dismissed notifications
     Connections {
         target: NotificationService
 
@@ -91,6 +91,14 @@ Rectangle {
             if (systemPill.popupType === systemPill.popupNotification) {
                 systemPill.closePopup();
             }
+        }
+    }
+
+    // Safety fallback watcher for active notification state
+    readonly property bool hasActiveNotification: NotificationService.hasActiveNotification
+    onHasActiveNotificationChanged: {
+        if (!hasActiveNotification && systemPill.popupType === systemPill.popupNotification && systemPill.popupShown) {
+            systemPill.closePopup();
         }
     }
 
@@ -248,6 +256,7 @@ Rectangle {
     implicitHeight: Theme.pillHeight
     height: Theme.pillHeight
     implicitWidth: pillRow.implicitWidth + 16
+    width: implicitWidth
     Layout.margins: 4
     opacity: popupShown ? 0 : 1
 
@@ -484,15 +493,15 @@ Rectangle {
                     width: 18
                     height: 18
                     anchors.verticalCenter: parent.verticalCenter
-                    text: AudioService.outputIcon()
-                    color: AudioService.outputMuted() ? Colors.color8 : Colors.color4
+                    text: AudioService.outputIcon
+                    color: AudioService.outputMuted ? Colors.color8 : Colors.color4
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeHeader
                 }
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: Math.round(AudioService.outputVolume() * 100) + "%"
+                    text: Math.round(AudioService.outputVolume * 100) + "%"
                     color: Colors.foreground
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeBody
@@ -516,7 +525,7 @@ Rectangle {
 
                 onWheel: wheel => {
                     let delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
-                    AudioService.setOutputVolume(AudioService.outputVolume() + delta);
+                    AudioService.setOutputVolume(AudioService.outputVolume + delta);
                 }
             }
         }

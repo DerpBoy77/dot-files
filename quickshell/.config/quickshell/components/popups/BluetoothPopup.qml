@@ -134,7 +134,7 @@ Item {
             spacing: 4
 
             Repeater {
-                model: BluetoothService.sortedDevices()
+                model: BluetoothService.sortedDeviceList
                 delegate: Rectangle {
                     id: deviceRow
                     required property var modelData

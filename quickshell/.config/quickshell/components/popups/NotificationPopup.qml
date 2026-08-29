@@ -17,11 +17,14 @@ Item {
     implicitWidth: 360
     implicitHeight: notificationStack.implicitHeight
 
-    // Pause expiration when hovering notifications
+    // Dedicated non-blocking root hover area to pause/resume countdown gracefully
     MouseArea {
+        id: rootHoverArea
         anchors.fill: parent
         hoverEnabled: true
+        acceptedButtons: Qt.NoButton
         z: -1
+
         onContainsMouseChanged: {
             NotificationService.isNotificationHovered = containsMouse;
         }

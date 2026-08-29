@@ -47,7 +47,7 @@ hl.config({
     border_size       = 3,
 
     col               = {
-      active_border   = c.color2,
+      active_border   = c.color4,
       inactive_border = c.color8,
     },
 
