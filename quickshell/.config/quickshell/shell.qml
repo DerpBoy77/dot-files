@@ -1,7 +1,9 @@
 //@ pragma UseQApplication
 //@ pragma IconTheme Papirus-Dark
 
+import "./"
 import "./components"
+import "./services"
 
 import QtQuick
 import QtQuick.Layouts
@@ -9,20 +11,17 @@ import Quickshell
 import Quickshell.Wayland
 
 ShellRoot {
-    // =========================================================
-    // DYNAMIC TOP BAR (Survives DPMS on/off & Hotplugs)
-    // =========================================================
-
     Variants {
         model: Quickshell.screens
 
-        delegate: Component {
+        delegate: Scope {
+            id: screenScope
+            required property var modelData
+
+            // Top Bar Window
             PanelWindow {
                 id: barWindow
-
-                // Dynamically binds to active output on wake-up
-                required property var modelData
-                screen: modelData
+                screen: screenScope.modelData
 
                 implicitHeight: 48
                 color: "transparent"
@@ -41,6 +40,7 @@ ShellRoot {
                     right: true
                 }
 
+                // Left: Workspaces Pill
                 Workspaces {
                     anchors {
                         left: parent.left
@@ -48,6 +48,7 @@ ShellRoot {
                     }
                 }
 
+                // Center: Morphing Clock Pill
                 Clock {
                     id: clock
                     barWindow: barWindow
@@ -58,12 +59,18 @@ ShellRoot {
                     }
                 }
 
+                // Right: System Controls & Dynamic Island
                 SystemPill {
                     anchors {
                         right: parent.right
                         verticalCenter: parent.verticalCenter
                     }
                 }
+            }
+
+            // Fullscreen Volume Overlay
+            VolumeOsd {
+                screen: screenScope.modelData
             }
         }
     }

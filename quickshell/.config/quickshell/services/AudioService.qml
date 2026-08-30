@@ -1,72 +1,35 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Services.Pipewire
 import Quickshell.Io
 
 QtObject {
     id: root
 
+    // =========================================================
+    // Signals & Initialization
+    // =========================================================
+
+    signal volumeChanged(real volume, bool muted)
+    property bool isInitialized: false
+
+    property var initTimer: Timer {
+        interval: 1200
+        repeat: false
+        running: true
+        onTriggered: root.isInitialized = true
+    }
+
+    // =========================================================
+    // PipeWire Handles
+    // =========================================================
+
     readonly property var output: Pipewire.defaultAudioSink
     readonly property var input: Pipewire.defaultAudioSource
 
     property real fallbackInputVolume: 1.0
     property bool fallbackInputMuted: false
-
-    readonly property var outputAudio: output && output.audio ? output.audio : null
-    readonly property var inputAudio: input && input.audio ? input.audio : null
-    readonly property bool outputAvailable: output !== null
-    readonly property bool inputAvailable: input !== null
-
-    // =========================================================
-    // Reactive Properties
-    // =========================================================
-
-    readonly property real outputVolume: {
-        if (!outputAudio || outputAudio.volume === undefined)
-            return 0;
-        let volume = Number(outputAudio.volume);
-        return isNaN(volume) ? 0 : Math.max(0, Math.min(1.0, volume));
-    }
-
-    readonly property real inputVolume: {
-        if (inputAudio && inputAudio.volume !== undefined && !isNaN(Number(inputAudio.volume))) {
-            return Math.max(0, Math.min(1.0, Number(inputAudio.volume)));
-        }
-        return fallbackInputVolume;
-    }
-
-    readonly property bool outputMuted: outputAudio ? !!outputAudio.muted : false
-
-    readonly property bool inputMuted: {
-        if (inputAudio && inputAudio.muted !== undefined)
-            return !!inputAudio.muted;
-        return fallbackInputMuted;
-    }
-
-    readonly property string outputIcon: {
-        if (!outputAudio)
-            return "󰕾";
-        if (outputAudio.muted)
-            return "󰝟";
-        let vol = root.outputVolume;
-        if (vol <= 0.01)
-            return "󰝟";
-        if (vol < 0.33)
-            return "󰕿";
-        if (vol < 0.66)
-            return "󰖀";
-        return "󰕾";
-    }
-
-    readonly property string inputIcon: root.inputMuted ? "󰍭" : "󰍬"
-
-    readonly property string outputName: output ? (output.description || output.nickname || output.name || "Speakers") : "No Output"
-
-    readonly property string inputName: input ? (input.description || input.nickname || input.name || "Microphone") : "No Microphone"
-
-    // =========================================================
-    // Node Tracking
-    // =========================================================
 
     readonly property var sinkNodes: {
         if (!Pipewire.nodes)
@@ -97,15 +60,91 @@ QtObject {
         return streams;
     }
 
+    // Assigned to a property so QtObject accepts it
     property var tracker: PwObjectTracker {
         objects: [root.output, root.input, ...root.sinkNodes, ...root.mixerStreams].filter(Boolean)
     }
 
+    readonly property var outputAudio: root.output && root.output.audio ? root.output.audio : null
+    readonly property var inputAudio: root.input && root.input.audio ? root.input.audio : null
+    readonly property bool outputAvailable: root.output !== null
+    readonly property bool inputAvailable: root.input !== null
+
+    // Reactive Volume Getters
+    readonly property real outputVolume: {
+        if (!outputAudio)
+            return 0;
+        let vol = Number(outputAudio.volume);
+        return isNaN(vol) ? 0 : Math.max(0, Math.min(1.0, vol));
+    }
+
+    readonly property bool outputMuted: outputAudio ? !!outputAudio.muted : false
+
+    readonly property real inputVolume: {
+        if (inputAudio && inputAudio.volume !== undefined && !isNaN(Number(inputAudio.volume))) {
+            return Math.max(0, Math.min(1.0, Number(inputAudio.volume)));
+        }
+        return root.fallbackInputVolume;
+    }
+
+    readonly property bool inputMuted: {
+        if (inputAudio && inputAudio.muted !== undefined)
+            return !!inputAudio.muted;
+        return root.fallbackInputMuted;
+    }
+
+    // Trigger OSD on Volume / Mute change
+    onOutputVolumeChanged: {
+        if (isInitialized)
+            root.volumeChanged(outputVolume, outputMuted);
+    }
+
+    onOutputMutedChanged: {
+        if (isInitialized)
+            root.volumeChanged(outputVolume, outputMuted);
+    }
+
     // =========================================================
-    // Fallback Shell Processes
+    // Icons & Labels
+    // =========================================================
+
+    readonly property string outputIcon: {
+        if (!outputAudio)
+            return "󰕾";
+        if (outputMuted)
+            return "󰝟";
+        if (outputVolume <= 0.01)
+            return "󰝟";
+        if (outputVolume < 0.33)
+            return "󰕿";
+        if (outputVolume < 0.66)
+            return "󰖀";
+        return "󰕾";
+    }
+
+    readonly property string inputIcon: inputMuted ? "󰍭" : "󰍬"
+
+    function nodeAppName(node) {
+        if (!node)
+            return "Unknown Application";
+        let props = node.properties;
+        if (props) {
+            if (props["application.name"])
+                return props["application.name"];
+            if (props["media.name"])
+                return props["media.name"];
+            if (props["node.description"])
+                return props["node.description"];
+        }
+        return (node.description || node.nickname || node.name || "Unknown Application");
+    }
+
+    // =========================================================
+    // WPCTL Fallbacks & Setters (Assigned to properties)
     // =========================================================
 
     property var wpctlGetSourceProc: Process {
+        id: wpctlGetSourceProc
         command: ["sh", "-c", "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null"]
         running: true
         stdout: StdioCollector {
@@ -115,9 +154,8 @@ QtObject {
                     let clean = out.replace("Volume:", "").trim();
                     let parts = clean.split(" ");
                     let vol = parseFloat(parts[0]);
-                    if (!isNaN(vol)) {
+                    if (!isNaN(vol))
                         root.fallbackInputVolume = Math.max(0, Math.min(1.0, vol));
-                    }
                     root.fallbackInputMuted = out.includes("[MUTED]");
                 }
             }
@@ -125,69 +163,43 @@ QtObject {
     }
 
     property var wpctlSetSourceVolProc: Process {
+        id: wpctlSetSourceVolProc
         property string targetVol: "1.0"
         command: ["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", targetVol]
     }
 
     property var wpctlToggleSourceMuteProc: Process {
+        id: wpctlToggleSourceMuteProc
         command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]
     }
 
-    function refreshInputState() {
-        wpctlGetSourceProc.running = true;
+    function setOutputVolume(val) {
+        if (outputAudio)
+            outputAudio.volume = Math.max(0, Math.min(1.0, val));
     }
 
-    function nodeAppName(node) {
-        if (!node)
-            return "Unknown Application";
-        let properties = node.properties;
-        if (properties) {
-            if (properties["application.name"])
-                return properties["application.name"];
-            if (properties["media.name"])
-                return properties["media.name"];
-            if (properties["node.description"])
-                return properties["node.description"];
-        }
-        return (node.description || node.nickname || node.name || "Unknown Application");
-    }
-
-    function setOutputVolume(value) {
-        let audio = outputAudio;
-        if (audio)
-            audio.volume = Math.max(0, Math.min(1.0, value));
-    }
-
-    function setInputVolume(value) {
-        let val = Math.max(0, Math.min(1.0, value));
-        fallbackInputVolume = val;
-        let audio = inputAudio;
-        if (audio)
-            audio.volume = val;
-        wpctlSetSourceVolProc.targetVol = val.toFixed(2);
+    function setInputVolume(val) {
+        let clamped = Math.max(0, Math.min(1.0, val));
+        root.fallbackInputVolume = clamped;
+        if (inputAudio)
+            inputAudio.volume = clamped;
+        wpctlSetSourceVolProc.targetVol = clamped.toFixed(2);
         wpctlSetSourceVolProc.running = true;
     }
 
-    function toggleOutputMute() {
-        let audio = outputAudio;
-        if (audio)
-            audio.muted = !audio.muted;
-    }
-
     function toggleInputMute() {
-        let audio = inputAudio;
-        if (audio) {
-            audio.muted = !audio.muted;
-            fallbackInputMuted = audio.muted;
+        if (inputAudio) {
+            inputAudio.muted = !inputAudio.muted;
+            root.fallbackInputMuted = inputAudio.muted;
         } else {
-            fallbackInputMuted = !fallbackInputMuted;
+            root.fallbackInputMuted = !root.fallbackInputMuted;
         }
         wpctlToggleSourceMuteProc.running = true;
     }
 
-    function setDefaultSink(node) {
-        if (node) {
-            Pipewire.defaultAudioSink = node;
+    function toggleOutputMute() {
+        if (outputAudio) {
+            outputAudio.muted = !outputAudio.muted;
         }
     }
 }

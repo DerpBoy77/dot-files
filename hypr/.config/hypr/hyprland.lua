@@ -21,8 +21,6 @@ hl.on("hyprland.start", function()
     "awww-daemon",
     "wl-paste --type text --watch cliphist store",
     "wl-paste --type image --watch cliphist store",
-    "nm-applet --indicator",
-    "blueman-applet",
     "hypridle",
     "systemctl --user start hyprpolkitagent",
     "udiskie",
