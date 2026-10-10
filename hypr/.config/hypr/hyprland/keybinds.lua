@@ -21,8 +21,23 @@ hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("killall -SIGUSR2 waybar"))
 -- Clipboard history
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("~/.config/scripts/clip.sh"))
 
--- Lock screen
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
+-- Toggle HDR
+hl.bind(mainMod .. " + H", hl.dsp.exec_cmd("~/.config/scripts/toggle-hdr.sh"))
+
+-- Lock and turn display off (Super + L)
+hl.bind("SUPER + L", function()
+    hl.dispatch(hl.dsp.exec_cmd("loginctl lock-session"))
+    hl.timer(function()
+        hl.dispatch(hl.dsp.dpms({ action = "disable" }))
+    end, { timeout = 1000, type = "oneshot" })
+end)
+
+-- Just turn display off (Super + O)
+hl.bind("SUPER + O", function()
+    hl.timer(function()
+        hl.dispatch(hl.dsp.dpms({ action = "disable" }))
+    end, { timeout = 500, type = "oneshot" })
+end)
 
 -- Screenshot a region to clipboard (The most common use)
 hl.bind(mainMod .. " + SHIFT + S",

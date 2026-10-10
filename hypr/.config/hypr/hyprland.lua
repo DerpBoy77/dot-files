@@ -2,13 +2,28 @@ local home = os.getenv("HOME")
 package.path = package.path .. ";" .. home .. "/.cache/wallust/?.lua"
 local c = require("colors")
 
+-- Helper to adjust hex alpha in wallust colors (e.g. "ff" -> "aa" for ~66% opacity on OLED)
+local function alpha(color_str, a)
+  return color_str and (color_str:gsub("ff%)$", a .. ")")) or color_str
+end
+
 
 hl.monitor({
-  output   = "",
-  mode     = "1920x1080@144",
-  position = "auto",
-  scale    = "auto",
-  bitdepth = 10
+  output              = "DP-1",
+  mode                = "2560x1440@240",
+  position            = "auto",
+  scale               = "auto",
+  bitdepth            = 10,
+  cm                  = "hdredid",
+  supports_wide_color = 1,
+  supports_hdr        = 1,
+  min_luminance       = 0.0,
+  max_luminance       = 409,
+  max_avg_luminance   = 204,
+  sdrbrightness       = .9,
+  sdrsaturation       = 1,
+  sdr_max_luminance   = 204,
+  sdr_min_luminance   = 0.0
 })
 
 -------------------
@@ -42,11 +57,11 @@ hl.config({
     gaps_in           = 5,
     gaps_out          = 15,
 
-    border_size       = 3,
+    border_size       = 2,
 
     col               = {
-      active_border   = c.color4,
-      inactive_border = c.color8,
+      active_border   = alpha(c.color4, "aa"),
+      inactive_border = "rgba(00000000)",
     },
 
     -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
@@ -124,7 +139,16 @@ hl.config({
   misc = {
     force_default_wallpaper = 0,    -- Set to 0 or 1 to disable the anime mascot wallpapers
     disable_hyprland_logo   = true, -- If true disables the random hyprland logo / anime girl background. :(
-    vrr                     = 0
+    vrr                     = 2,    -- 1 = on, 2 = fullscreen only (FreeSync on AW2726DM 240Hz)
+    key_press_enables_dpms  = true
+  },
+
+  render = {
+    direct_scanout       = 1,          -- Direct scanout for reduced latency in fullscreen games
+    cm_enabled           = true,       -- Explicitly enable color management pipeline
+    cm_auto_hdr          = 2,          -- Automatic HDR tagging for HDR-capable applications
+    cm_sdr_eotf          = "gamma22",  -- Pure power 2.2 curve; eliminates washed out gray shadows
+    keep_unmodified_copy = 2,          -- Preserves untransformed sRGB buffer for screenshots/streaming
   },
 })
 
@@ -195,8 +219,8 @@ hl.window_rule({
 
 hl.window_rule({
   name = "vsCode",
-  match = { class = "code" },
-  opacity = 0.75,
+  match = { class = "com.microsoft.VSCode" },
+  opacity = 0.85
 })
 
 hl.window_rule({
@@ -244,4 +268,23 @@ hl.layer_rule({
 hl.workspace_rule({
   workspace = "5",
   layout = "scrolling",
+})
+
+-- OLED Burn-in Protection: disable borders when a single tiled window is alone or fullscreen
+hl.window_rule({
+  name        = "oled_solitary_no_border",
+  match       = { workspace = "w[tv1]", float = false },
+  border_size = 0,
+})
+
+hl.window_rule({
+  name        = "oled_fullscreen_no_border",
+  match       = { fullscreen = true },
+  border_size = 0,
+})
+
+hl.window_rule({
+  name="mpv",
+  match ={namespace="mpv"},
+  no_vrr=true
 })

@@ -67,4 +67,9 @@ QtObject {
     // Lifecycle Timers
     readonly property int closeDelay: 350
     readonly property int tabSwitchDelay: 90
+
+    // OLED Protections & Inactivity Transitions
+    readonly property int animOledWake: 150
+    readonly property int animOledDim: 800
+    readonly property int animOledShift: 600
 }

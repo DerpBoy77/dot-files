@@ -40,30 +40,112 @@ ShellRoot {
                     right: true
                 }
 
-                // Left: Workspaces Pill
-                Workspaces {
-                    anchors {
-                        left: parent.left
-                        verticalCenter: parent.verticalCenter
+                property bool barHovered: false
+                readonly property bool shouldBeAwake: {
+                    if (!OledService.enabled)
+                        return true;
+                    if (barHovered)
+                        return true;
+                    if (OledService.workspaceWaking)
+                        return true;
+                    if (clock && clock.expanded)
+                        return true;
+                    if (systemPill && systemPill.popupShown)
+                        return true;
+                    if (NotificationService.hasActiveNotification)
+                        return true;
+                    return false;
+                }
+
+                property bool isAwake: true
+
+                onShouldBeAwakeChanged: {
+                    if (shouldBeAwake) {
+                        idleTimer.stop();
+                        isAwake = true;
+                    } else {
+                        idleTimer.restart();
                     }
                 }
 
-                // Center: Morphing Clock Pill
-                Clock {
-                    id: clock
-                    barWindow: barWindow
-
-                    anchors {
-                        horizontalCenter: parent.horizontalCenter
-                        verticalCenter: parent.verticalCenter
+                Timer {
+                    id: idleTimer
+                    interval: OledService.idleTimeoutMs
+                    repeat: false
+                    onTriggered: {
+                        if (!barWindow.shouldBeAwake) {
+                            barWindow.isAwake = false;
+                        }
                     }
                 }
 
-                // Right: System Controls & Dynamic Island
-                SystemPill {
-                    anchors {
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
+                // Non-blocking mouse tracker across the top bar
+                MouseArea {
+                    id: barMouseTracker
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    acceptedButtons: Qt.NoButton
+                    onContainsMouseChanged: barWindow.barHovered = containsMouse
+                }
+
+                // Wrapped content for OLED orbital shift and idle dimming
+                Item {
+                    id: barContent
+                    anchors.fill: parent
+
+                    opacity: barWindow.isAwake ? OledService.activeOpacity : OledService.idleOpacity
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: barWindow.isAwake ? Theme.animOledWake : Theme.animOledDim
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
+                    transform: Translate {
+                        x: OledService.shiftX
+                        y: OledService.shiftY
+
+                        Behavior on x {
+                            NumberAnimation {
+                                duration: Theme.animOledShift
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
+                        Behavior on y {
+                            NumberAnimation {
+                                duration: Theme.animOledShift
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
+                    }
+
+                    // Left: Workspaces Pill
+                    Workspaces {
+                        anchors {
+                            left: parent.left
+                            verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    // Center: Morphing Clock Pill
+                    Clock {
+                        id: clock
+                        barWindow: barWindow
+
+                        anchors {
+                            horizontalCenter: parent.horizontalCenter
+                            verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    // Right: System Controls & Dynamic Island
+                    SystemPill {
+                        id: systemPill
+                        anchors {
+                            right: parent.right
+                            verticalCenter: parent.verticalCenter
+                        }
                     }
                 }
             }

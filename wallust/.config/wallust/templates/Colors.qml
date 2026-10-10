@@ -36,8 +36,8 @@ QtObject {
     // Inner Card / Box Fills (40% opacity of color0)
     readonly property color cardGlass: Qt.rgba(color0.r, color0.g, color0.b, 0.40)
 
-    // Subtle edge borders (16% opacity of foreground)
-    readonly property color borderGlass: Qt.rgba(foreground.r, foreground.g, foreground.b, 0.16)
+    // Subtle edge borders (10% opacity of foreground - softened for OLED burn-in prevention)
+    readonly property color borderGlass: Qt.rgba(foreground.r, foreground.g, foreground.b, 0.10)
 
     // Interactive Overlays
     readonly property color hoverOverlay: Qt.rgba(foreground.r, foreground.g, foreground.b, 0.08)

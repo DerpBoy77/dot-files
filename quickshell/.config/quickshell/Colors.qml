@@ -6,25 +6,25 @@ QtObject {
     // Wallust Palette Slots
     // =========================================================
 
-    property color background: "#242529"
-    property color foreground: "#FAFAF9"
-    property color cursor: "#B3959F"
-    property color color0: "#4E5055"
-    property color color1: "#525B6E"
-    property color color2: "#8D5E70"
-    property color color3: "#7A94AD"
-    property color color4: "#B8A5B4"
-    property color color5: "#F0B4A2"
-    property color color6: "#F2F2ED"
-    property color color7: "#F0F0EE"
-    property color color8: "#A8A8A6"
-    property color color9: "#525B6E"
-    property color color10: "#8D5E70"
-    property color color11: "#7A94AD"
-    property color color12: "#B8A5B4"
-    property color color13: "#F0B4A2"
-    property color color14: "#F2F2ED"
-    property color color15: "#F0F0EE"
+    property color background: "#0F1314"
+    property color foreground: "#FFE4E0"
+    property color cursor: "#859F9F"
+    property color color0: "#3A3D3F"
+    property color color1: "#3A4C52"
+    property color color2: "#417F82"
+    property color color3: "#FE4855"
+    property color color4: "#49B4B3"
+    property color color5: "#FF9552"
+    property color color6: "#FFB1A7"
+    property color color7: "#F6D0CB"
+    property color color8: "#AD918E"
+    property color color9: "#3A4C52"
+    property color color10: "#417F82"
+    property color color11: "#FE4855"
+    property color color12: "#49B4B3"
+    property color color13: "#FF9552"
+    property color color14: "#FFB1A7"
+    property color color15: "#F6D0CB"
 
     // =========================================================
     // Dynamic Glass Helpers (Consistent with Kitty 0.7 opacity)
@@ -36,8 +36,8 @@ QtObject {
     // Inner Card / Box Fills (40% opacity of color0)
     readonly property color cardGlass: Qt.rgba(color0.r, color0.g, color0.b, 0.40)
 
-    // Subtle edge borders (16% opacity of foreground)
-    readonly property color borderGlass: Qt.rgba(foreground.r, foreground.g, foreground.b, 0.16)
+    // Subtle edge borders (10% opacity of foreground - softened for OLED burn-in prevention)
+    readonly property color borderGlass: Qt.rgba(foreground.r, foreground.g, foreground.b, 0.10)
 
     // Interactive Overlays
     readonly property color hoverOverlay: Qt.rgba(foreground.r, foreground.g, foreground.b, 0.08)

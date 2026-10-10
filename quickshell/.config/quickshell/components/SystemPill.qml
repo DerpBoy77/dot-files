@@ -447,10 +447,10 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: {
-                    if (NetworkService.connectedWifiNetwork !== null)
-                        return NetworkService.signalIcon(NetworkService.connectedWifiNetwork.signalStrength);
                     if (NetworkService.ethernetConnected)
                         return "󰈀";
+                    if (NetworkService.connectedWifiNetwork !== null)
+                        return NetworkService.signalIcon(NetworkService.connectedWifiNetwork.signalStrength);
                     return NetworkService.hasWifi ? "󰤭" : "󰈂";
                 }
                 color: netSection.isConnected ? Colors.color4 : Colors.color8
@@ -753,7 +753,7 @@ Rectangle {
                             spacing: 6
 
                             Text {
-                                text: NetworkService.hasWifi ? "󰤨" : "󰈀"
+                                text: NetworkService.ethernetConnected ? "󰈀" : (NetworkService.hasWifi ? "󰤨" : "󰈂")
                                 color: systemPill.popupType === systemPill.popupNetwork ? Colors.background : Colors.foreground
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeTitle

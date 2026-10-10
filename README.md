@@ -131,6 +131,7 @@ The laptop/keyboard audio mute key (`XF86AudioMute`) functions as a mode switche
 
 Ensure the following tools and packages are installed:
 
+- **Graphics & Hardware (AMD):** `mesa`, `vulkan-radeon`, `lib32-vulkan-radeon`, `xf86-video-amdgpu`, `libva`
 - **Core & Compositor:** `hyprland`, `hyprland-lua`, `uwsm`, `stow`
 - **Shell & UI:** `quickshell`, `kitty`, `rofi-wayland`, `wlogout`, `hyprlock`, `hypridle`
 - **Theming & Wallpaper:** `wallust`, `waypaper`, `awww` (or `swww`), `papirus-icon-theme`

@@ -30,7 +30,7 @@ QtObject {
 
     readonly property bool hasWifi: wifiDevice !== null
     readonly property bool hasEthernet: ethernetDevice !== null
-    readonly property bool ethernetConnected: ethernetDevice !== null && ethernetDevice.connected
+    readonly property bool ethernetConnected: (ethernetDevice !== null && ethernetDevice.connected) || (dynamicIface.indexOf("en") === 0 || dynamicIface.indexOf("eth") === 0)
 
     readonly property var connectedWifiNetwork: {
         let device = wifiDevice;
@@ -73,6 +73,65 @@ QtObject {
 
     function refreshStats() {
         netStatsProc.running = true;
+        updateNetworkList();
+    }
+
+    property bool freezeList: false
+    property var networkList: []
+
+    function updateNetworkList() {
+        if (freezeList)
+            return;
+        if (!Networking.wifiEnabled || !wifiDevice || !wifiDevice.networks) {
+            networkList = [];
+            return;
+        }
+        networkList = sortedNetworks();
+    }
+
+    property var updateTimer: Timer {
+        interval: 150
+        repeat: false
+        onTriggered: root.updateNetworkList()
+    }
+
+    function scheduleNetworkListUpdate() {
+        if (freezeList)
+            return;
+        if (!Networking.wifiEnabled || !wifiDevice) {
+            updateTimer.stop();
+            networkList = [];
+            return;
+        }
+        updateTimer.restart();
+    }
+
+    Component.onCompleted: {
+        updateNetworkList();
+    }
+
+    property var networkingConnections: Connections {
+        target: Networking
+        ignoreUnknownSignals: true
+        function onWifiEnabledChanged() {
+            if (!Networking.wifiEnabled) {
+                root.updateTimer.stop();
+                root.networkList = [];
+            } else {
+                root.scheduleNetworkListUpdate();
+            }
+        }
+    }
+
+    property var wifiConnections: Connections {
+        target: root.wifiDevice
+        ignoreUnknownSignals: true
+        function onNetworksChanged() {
+            root.scheduleNetworkListUpdate();
+        }
+        function onScannerEnabledChanged() {
+            root.scheduleNetworkListUpdate();
+        }
     }
 
     function signalIcon(strength) {
@@ -96,21 +155,38 @@ QtObject {
     }
 
     function sortedNetworks() {
+        if (!Networking.wifiEnabled)
+            return [];
         let device = wifiDevice;
         if (!device || !device.networks)
             return [];
-        let networks = device.networks.values.slice();
-        networks.sort((a, b) => {
-            if (a.connected && !b.connected)
-                return -1;
-            if (!a.connected && b.connected)
-                return 1;
-            if (a.known && !b.known)
-                return -1;
-            if (!a.known && b.known)
-                return 1;
-            return (b.signalStrength - a.signalStrength);
-        });
-        return networks.slice(0, 8);
+        try {
+            let values = device.networks.values;
+            if (!values || values.length === 0)
+                return [];
+            let networks = [];
+            for (let i = 0; i < values.length; i++) {
+                let net = values[i];
+                if (net && net.name !== undefined) {
+                    networks.push(net);
+                }
+            }
+            networks.sort((a, b) => {
+                if (a.connected && !b.connected)
+                    return -1;
+                if (!a.connected && b.connected)
+                    return 1;
+                if (a.known && !b.known)
+                    return -1;
+                if (!a.known && b.known)
+                    return 1;
+                let sA = (a.signalStrength !== undefined) ? a.signalStrength : 0;
+                let sB = (b.signalStrength !== undefined) ? b.signalStrength : 0;
+                return (sB - sA);
+            });
+            return networks.slice(0, 8);
+        } catch (e) {
+            return [];
+        }
     }
 }
